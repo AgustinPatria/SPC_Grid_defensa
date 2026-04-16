@@ -55,3 +55,30 @@ Runs two scenarios to compare:
 | `costo_mult` | `1.0` | Transaction cost multiplier |
 | `c_base` | `{SPX: 0.005, CMC200: 0.010}` | Base transaction costs (0.5%, 1.0%) |
 | `w0` | `{SPX: 0.5, CMC200: 0.5}` | Initial portfolio weights |
+
+
+ProyectoV3/
+├── data/                  CSVs (prob_*, ret_semanal_*)
+├── results/               outputs
+├── legacy/                basemodel original, GAMS, regret_grid_dl viejo
+│
+├── optimizer/             CAPA 1 — §1 PDF (GAMS equivalente, Gurobi)
+│   ├── data_loader.py     §1.2–1.3  mu_mix, sigma_mix
+│   ├── model.py           §1.4      QP media-varianza con costos
+│   ├── simulation.py      §1.5      capital ex-post (opt, BH, RB)
+│   └── sensitivity.py     grid interno λ×m (GAMS §5)
+│
+├── prediction/            CAPA 2 — §2 PDF (Deep Learning) — stubs
+│   ├── dataset.py         §2.2  ventanas H, split cronológico
+│   ├── model_dl.py        §2.3  red cuantil (LSTM/Transformer)
+│   ├── train.py           §2.3  pinball loss + early stopping
+│   ├── regime_probs.py    §2.4  cuantiles → p_{i,k,t}
+│   └── scenarios.py       §2.5  N escenarios → 5 quintiles
+│
+├── calibration/           CAPA 3 — §3 PDF (Regret-Grid) — stubs
+│   ├── grid.py            §3.2  G = Λ × M
+│   ├── evaluate.py        §3.3  V_{g,s}
+│   └── regret.py          §3.4  R_{g,s}, reglas avg / worst-case
+│
+├── main.py                corre solo CAPA 1 (equivalente al GAMS actual)
+└── pipeline.py            Algorithm 1 completo (skeleton, pendiente)
