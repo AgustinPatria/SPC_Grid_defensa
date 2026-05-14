@@ -1,10 +1,13 @@
 __pycache__/
 *.pyc
 *.pyo
-.venv/
-venv/
-.env
+*.pyd
+
 .claude/
 .vscode/
 .idea/
-*.log
+
+*.bak
+
+# Logs temporales de stdout en la raiz (los logs dentro de experimentos/*_out/ si se versionan)
+/run_*.log
