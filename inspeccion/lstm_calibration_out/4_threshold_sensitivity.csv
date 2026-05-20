@@ -1,0 +1,15 @@
+threshold_pct,asset,pred_p_bull,real_p_bull,is_train_median
+-2.0,SPX,0.7875,1.0,False
+-2.0,CMC200,0.575,0.75,False
+-1.0,SPX,0.65,0.9375,False
+-1.0,CMC200,0.525,0.6875,False
+-0.5,SPX,0.6,0.9375,False
+-0.5,CMC200,0.4625,0.6875,False
+0.0,SPX,0.5625,0.9375,False
+0.0,CMC200,0.4625,0.6875,False
+0.5,SPX,0.425,0.8125,False
+0.5,CMC200,0.4125,0.6875,False
+1.0,SPX,0.4125,0.625,False
+1.0,CMC200,0.4125,0.6875,False
+2.0,SPX,0.2125,0.1875,False
+2.0,CMC200,0.3875,0.625,False

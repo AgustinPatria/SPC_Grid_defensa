@@ -1,0 +1,102 @@
+======================================================================
+ANALISIS COMPREHENSIVO DEL PIPELINE (defaults: rollout + p_sign)
+======================================================================
+
+Construyendo contextos...
+  Assets: ['SPX', 'CMC200']
+  T = 163, scenarios = (5, 163, 2)
+
+--- A. ESCENARIOS ---
+  -> inspeccion\full_analysis_out\A1_escenarios_5_rep.png
+  -> inspeccion\full_analysis_out\A1_escenarios_5_rep.csv
+  Re-generando N=1000 candidatos para diagnostico...
+  -> inspeccion\full_analysis_out\A3_R_summary.csv
+  R_cum SPX (N=1000): mean=+49.26%  median=+37.05%  std=72.79%  min=-89.00%  max=+426.94%
+  -> inspeccion\full_analysis_out\A2_candidatos_distribution.png
+
+--- B. PROBABILIDADES DE REGIMEN ---
+  -> inspeccion\full_analysis_out\B1_p_bull_compare.png
+  -> inspeccion\full_analysis_out\B1_p_bull_compare.csv
+  -> inspeccion\full_analysis_out\B2_p_summary.csv
+       source  asset  p_bull_mean  p_bull_std  p_bull_min  p_bull_max  p_bull_<0.5_pct
+ p_dl_rollout    SPX       0.4086      0.0407      0.4000      0.6000           0.9571
+ p_dl_rollout CMC200       0.4000      0.0000      0.4000      0.4000           1.0000
+   p_hist_csv    SPX       0.5948      0.3383      0.0558      0.9450           0.3804
+   p_hist_csv CMC200       0.7658      0.1593      0.1144      0.8832           0.0859
+p_sign_oracle    SPX       0.5583      0.4981      0.0000      1.0000           0.4417
+p_sign_oracle CMC200       0.5337      0.5004      0.0000      1.0000           0.4663
+
+--- C. MOMENTOS Y MEZCLA ---
+  -> inspeccion\full_analysis_out\C1_mu_hat.csv
+
+  mu_hat y sigma_hat por (asset, regime):
+ asset regime  mu_hat_pct  sigma_hat_pct
+   SPX   bear     -1.8600         1.4363
+   SPX   bull      1.8068         1.4183
+CMC200   bear     -7.0626         7.5668
+CMC200   bull      6.9558         6.0556
+
+  Cov SPX-CMC:
+    bear: 0.000194
+    bull: -0.000019
+  -> inspeccion\full_analysis_out\C2_mu_mix_traj.png
+  -> inspeccion\full_analysis_out\C2_mu_mix_traj.csv
+  -> inspeccion\full_analysis_out\C3_sigma_mix_traj.png
+  -> inspeccion\full_analysis_out\C3_sigma_mix_traj.csv
+
+--- D. REGRET GRID ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.5636  V=[$6,768 .. $25,343]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.5646  V=[$6,768 .. $25,343]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.5658  V=[$6,768 .. $25,343]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.5108  V=[$6,768 .. $25,343]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.5118  V=[$6,768 .. $25,343]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.5131  V=[$6,768 .. $25,343]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.4844  V=[$6,768 .. $25,343]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.4854  V=[$6,768 .. $25,343]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.4867  V=[$6,768 .. $25,343]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.4580  V=[$6,768 .. $25,343]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.4590  V=[$6,768 .. $25,343]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.4603  V=[$6,768 .. $25,343]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.4316  V=[$6,768 .. $25,343]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.4326  V=[$6,768 .. $25,343]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\full_analysis.py:409: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\full_analysis.py:409: UserWarning: g*_worst cae en frontera del grid (lambda=1.80, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.4339  V=[$6,768 .. $25,343]
+  -> inspeccion\full_analysis_out\D1_V_table_long.csv
+  -> inspeccion\full_analysis_out\D1_V_table_pivot.csv
+  -> inspeccion\full_analysis_out\D2_R_table_pivot.csv
+  -> inspeccion\full_analysis_out\D3_regret_summary.csv
+  -> inspeccion\full_analysis_out\D1_V_heatmap.png
+  -> inspeccion\full_analysis_out\D2_R_heatmap.png
+  -> inspeccion\full_analysis_out\D3_g_seleccion.csv
+  g*_mean  = (0.30, 0.5)  regret = $0
+  g*_worst = (1.80, 1.0)  regret = $0
+
+--- E. POLITICAS w(t) ---
+  -> inspeccion\full_analysis_out\E1_w_g_mean.png
+  -> inspeccion\full_analysis_out\E1_w_g_mean.csv
+  -> inspeccion\full_analysis_out\E1_w_g_worst.png
+  -> inspeccion\full_analysis_out\E1_w_g_worst.csv
+  -> inspeccion\full_analysis_out\E3_turnover_costs.png
+  -> inspeccion\full_analysis_out\E3_turnover_costs.csv
+
+--- F. CAPITAL POR ESCENARIO ---
+  -> inspeccion\full_analysis_out\F1_capital_g_mean.png
+  -> inspeccion\full_analysis_out\F1_capital_g_worst.png
+  -> inspeccion\full_analysis_out\F1_capital_per_scenario.csv
+  -> inspeccion\full_analysis_out\F3_V_terminal_dist.csv
+
+--- G. BACKTEST HISTORICO (fuera del PDF) ---
+  -> inspeccion\full_analysis_out\G1_backtest_historical.csv
+  -> inspeccion\full_analysis_out\G1_backtest_historical.png
+  OPT base:   $14,522.32  (+45.22%)
+  RG g*_mean: $12,779.06  (+27.79%)
+  Naive RB:   $12,091.59  (+20.92%)
+  Naive BH:   $12,258.46  (+22.58%)
+  -> inspeccion\full_analysis_out\Z_resumen_final.csv
+
+======================================================================
+Done. Outputs en inspeccion/full_analysis_out/
+======================================================================

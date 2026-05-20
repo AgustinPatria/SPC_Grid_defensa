@@ -1,0 +1,4 @@
+setup,T_eff,t_first_orig,t_last_orig,n_padded,n_train_in_FO,n_valid_in_FO,n_test_in_FO,pct_oos
+full,163,1,163,60,72,15,16,0.09815950920245399
+nopad,103,61,163,0,72,15,16,0.1553398058252427
+test,16,148,163,0,0,0,16,1.0

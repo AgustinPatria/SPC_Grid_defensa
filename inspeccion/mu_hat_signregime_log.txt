@@ -1,0 +1,116 @@
+======================================================================
+MU_HAT_SOURCE: p_hist vs p_sign  (regime consistency)
+======================================================================
+Construyendo contextos...
+
+  [rollout+phist] p_method=rollout  mu_hat_source=p_hist
+    SPX: mu_mix mean=+0.193%  std=0.0012%  (p_bull std=0.041)
+    CMC200: mu_mix mean=+0.633%  std=0.0000%  (p_bull std=0.000)
+
+  [rollout+psign] p_method=rollout  mu_hat_source=p_sign
+    SPX: mu_mix mean=-0.362%  std=0.1491%  (p_bull std=0.041)
+    CMC200: mu_mix mean=-1.455%  std=0.0000%  (p_bull std=0.000)
+
+  [scenarios+psign] p_method=scenarios  mu_hat_source=p_sign
+    SPX: mu_mix mean=+0.164%  std=0.0621%  (p_bull std=0.017)
+    CMC200: mu_mix mean=-0.734%  std=0.2076%  (p_bull std=0.015)
+  -> inspeccion\mu_hat_signregime_out\1_muhat_compare.csv
+
+--- mu_hat por (asset, regimen) ---
+setup          rollout+phist  rollout+psign  scenarios+psign
+asset  regime                                               
+CMC200 bear             0.87          -7.06            -7.06
+       bull             0.28           6.96             6.96
+SPX    bear             0.21          -1.86            -1.86
+       bull             0.17           1.81             1.81
+  -> inspeccion\mu_hat_signregime_out\2_mumix_compare.png
+  -> inspeccion\mu_hat_signregime_out\2_mumix_compare.csv
+
+--- Grilla 5x3 solves en setup=rollout+phist ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.8304  V=[$3,667 .. $63,298]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.8294  V=[$3,667 .. $63,298]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8281  V=[$3,667 .. $63,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.5521  V=[$4,952 .. $43,609]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.5520  V=[$4,957 .. $43,551]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.5518  V=[$4,963 .. $43,476]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.5152  V=[$5,401 .. $38,267]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.5150  V=[$5,397 .. $38,310]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.5148  V=[$5,392 .. $38,364]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4989  V=[$5,677 .. $35,259]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4985  V=[$5,674 .. $35,291]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4981  V=[$5,670 .. $35,332]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4928  V=[$5,863 .. $33,351]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4923  V=[$5,861 .. $33,377]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4918  V=[$5,857 .. $33,410]
+
+--- Grilla 5x3 solves en setup=rollout+psign ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.5636  V=[$6,768 .. $25,343]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.5646  V=[$6,768 .. $25,343]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.5658  V=[$6,768 .. $25,343]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.5108  V=[$6,768 .. $25,343]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.5118  V=[$6,768 .. $25,343]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.5131  V=[$6,768 .. $25,343]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.4844  V=[$6,768 .. $25,343]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.4854  V=[$6,768 .. $25,343]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.4867  V=[$6,768 .. $25,343]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.4580  V=[$6,768 .. $25,343]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.4590  V=[$6,768 .. $25,343]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.4603  V=[$6,768 .. $25,343]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.4316  V=[$6,768 .. $25,343]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.4326  V=[$6,768 .. $25,343]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_worst cae en frontera del grid (lambda=1.80, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.4339  V=[$6,768 .. $25,343]
+
+--- Grilla 5x3 solves en setup=scenarios+psign ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.2939  V=[$6,768 .. $25,343]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.2929  V=[$6,768 .. $25,343]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.2917  V=[$6,768 .. $25,343]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.3470  V=[$6,768 .. $25,343]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.3460  V=[$6,768 .. $25,343]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.3448  V=[$6,768 .. $25,343]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.3736  V=[$6,768 .. $25,343]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.3726  V=[$6,768 .. $25,343]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.3713  V=[$6,768 .. $25,343]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4001  V=[$6,768 .. $25,343]
+  [11/15] lambda=1.50  m=0.5 ... z=0.3991  V=[$6,768 .. $25,343]
+  [12/15] lambda=1.50  m=1.0 ... z=0.3979  V=[$6,768 .. $25,343]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4267  V=[$6,768 .. $25,343]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4257  V=[$6,768 .. $25,343]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\mu_hat_signregime.py:175: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4244  V=[$6,768 .. $25,343]
+  -> inspeccion\mu_hat_signregime_out\3_grid_compare.csv
+  -> inspeccion\mu_hat_signregime_out\3_grid_compare.png
+  -> inspeccion\mu_hat_signregime_out\4_w_compare.png
+  -> inspeccion\mu_hat_signregime_out\4_w_compare.csv
+
+Resolviendo OPT base para backtest...
+  -> inspeccion\mu_hat_signregime_out\5_backtest_compare.png
+  -> inspeccion\mu_hat_signregime_out\5_backtest_compare.csv
+  -> inspeccion\mu_hat_signregime_out\6_resumen.csv
+
+======================================================================
+RESUMEN
+======================================================================
+  [rollout+phist]
+    mu_mix(SPX): mean=+0.19%/sem  std=0.001%
+    mu_mix(CMC): mean=+0.63%/sem  std=0.000%
+    g*_mean=(lam=0.30, m=0.1)  mean_regret=$1,122
+  [rollout+psign]
+    mu_mix(SPX): mean=-0.36%/sem  std=0.149%
+    mu_mix(CMC): mean=-1.46%/sem  std=0.000%
+    g*_mean=(lam=0.30, m=0.5)  mean_regret=$0
+  [scenarios+psign]
+    mu_mix(SPX): mean=+0.16%/sem  std=0.062%
+    mu_mix(CMC): mean=-0.73%/sem  std=0.208%
+    g*_mean=(lam=0.30, m=0.1)  mean_regret=$0
+======================================================================

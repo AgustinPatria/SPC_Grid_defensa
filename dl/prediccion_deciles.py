@@ -259,9 +259,13 @@ def _train_one(
     )
 
 
-def train_deciles(config: DLConfig) -> TrainResult:
-    """Entrena el LSTM con seed averaging; retorna el mejor modelo por pinball-valid."""
-    df_ret = load_returns()
+def train_deciles(config: DLConfig, data_dir: Path | None = None) -> TrainResult:
+    """Entrena el LSTM con seed averaging; retorna el mejor modelo por pinball-valid.
+
+    data_dir: si se pasa, carga los retornos desde ahi en vez del DATA_DIR
+        default. Util para entrenar sobre datasets sinteticos sin tocar config.
+    """
+    df_ret = load_returns(data_dir) if data_dir is not None else load_returns()
     X, Y, t_idx = build_windows(df_ret, config.H)
     split  = chrono_split(X, Y, t_idx, config.split)
     scaler = fit_standardizer(split.X_train)

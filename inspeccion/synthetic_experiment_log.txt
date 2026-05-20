@@ -1,0 +1,65 @@
+======================================================================
+EXPERIMENTO SINTETICO — pipeline con data de mejor senal
+======================================================================
+  Generado dataset sintetico en C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_experiment_out\data
+    SPX: mean ret = -0.053%/sem,  std = 1.54%/sem,  frac r>=0 = 49.7%
+    CMC: mean ret = -0.228%/sem,  std = 4.55%/sem,  frac r>=0 = 49.7%
+    p_bull(SPX): mean = 0.538,  std = 0.178,  rango [0.275, 0.767]
+    p_bull(CMC): mean = 0.535,  std = 0.226,  rango [0.206, 0.821]
+  -> inspeccion\synthetic_experiment_out\S1_synthetic_data.png
+  -> inspeccion\synthetic_experiment_out\S1_synthetic_data.csv
+
+Entrenando LSTM sobre C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_experiment_out\data...
+  seed=0  best_valid=0.009685
+  seed=1  best_valid=0.009795
+  seed=2  best_valid=0.009870
+  best_valid = 0.009685  (seed=0)
+  checkpoint: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_experiment_out\models\lstm_synthetic.pt
+
+Construyendo contexto DL sintetico...
+  p_dl(SPX): mean=0.600, std=0.000
+  p_dl(CMC): mean=0.600, std=0.000
+  mu_mix(SPX): mean=+0.201%, std=0.0000%
+  mu_mix(CMC): mean=+0.524%, std=0.0000%
+
+Corriendo regret-grid 5x3 = 15 solves...
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.8497  V=[$1,266 .. $14,341]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.8487  V=[$1,266 .. $14,341]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8475  V=[$1,266 .. $14,341]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.8405  V=[$1,266 .. $14,341]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.8395  V=[$1,266 .. $14,341]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.8382  V=[$1,266 .. $14,341]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.8358  V=[$1,266 .. $14,341]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.8348  V=[$1,266 .. $14,341]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.8336  V=[$1,266 .. $14,341]
+  [10/15] lambda=1.50  m=0.1 ... z=0.8312  V=[$1,266 .. $14,341]
+  [11/15] lambda=1.50  m=0.5 ... z=0.8302  V=[$1,266 .. $14,341]
+  [12/15] lambda=1.50  m=1.0 ... z=0.8289  V=[$1,266 .. $14,341]
+  [13/15] lambda=1.80  m=0.1 ... z=0.8265  V=[$1,266 .. $14,341]
+  [14/15] lambda=1.80  m=0.5 ... z=0.8255  V=[$1,266 .. $14,341]
+  [15/15] lambda=1.80  m=1.0 ... z=0.8243  V=[$1,266 .. $14,341]
+
+--- Comparando p_bull(t) sintetica vs real ---
+  -> inspeccion\synthetic_experiment_out\S2_pbull_compare.png
+  -> inspeccion\synthetic_experiment_out\S2_pbull_compare.csv
+  -> inspeccion\synthetic_experiment_out\S3_mumix_compare.png
+  -> inspeccion\synthetic_experiment_out\S3_mumix_compare.csv
+  -> inspeccion\synthetic_experiment_out\S4_w_policy.png
+  -> inspeccion\synthetic_experiment_out\S4_w_policy.csv
+  -> inspeccion\synthetic_experiment_out\S5_grid_compare.csv
+  -> inspeccion\synthetic_experiment_out\S5_grid_compare.png
+  -> inspeccion\synthetic_experiment_out\S6_capital_scenarios.png
+  -> inspeccion\synthetic_experiment_out\S6_capital_scenarios.csv
+  -> inspeccion\synthetic_experiment_out\S7_backtest_synthetic.csv
+
+--- Backtest sobre data sintetica (r realizado) ---
+  OPT base        cap_final=$ 29,649.69  ret=+196.50%
+  RG g*_mean      cap_final=$  5,743.65  ret=-42.56%
+  Naive RB        cap_final=$  7,378.76  ret=-26.21%
+  Naive BH        cap_final=$  7,424.52  ret=-25.75%
+  -> inspeccion\synthetic_experiment_out\S7_backtest_synthetic.png
+  -> inspeccion\synthetic_experiment_out\Z_resumen.csv
+
+======================================================================
+Done. Outputs en inspeccion/synthetic_experiment_out/
+======================================================================

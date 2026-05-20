@@ -1,0 +1,23 @@
+======================================================================
+REBALANCEO Y CAPITAL EN ESCENARIOS EXTREMOS (BEAR / BULL)
+======================================================================
+Construyendo ctx PDF-aligned y resolviendo g*_mean...
+  RG g*: z=0.8304
+Construyendo ctx OPT base y resolviendo (lambda=1.0, m=1.0)...
+  OPT base: z=0.3909
+  -> inspeccion\rebalanceo_escenarios_out\1_politicas_w.png
+  -> inspeccion\rebalanceo_escenarios_out\1_politicas_w.csv
+  -> inspeccion\rebalanceo_escenarios_out\2_returns_bear_bull.png
+  -> inspeccion\rebalanceo_escenarios_out\2_returns_bear_bull.csv
+  -> inspeccion\rebalanceo_escenarios_out\3_capital_bear_bull.png
+  -> inspeccion\rebalanceo_escenarios_out\3_capital_bear_bull.csv
+  -> inspeccion\rebalanceo_escenarios_out\4_resumen_terminal.csv
+
+--- Resumen terminal (escenarios extremos) ---
+ escenario  RG_cap_final  OPT_cap_final  Naive_cap_final  RG_ret_acum  OPT_ret_acum  Naive_ret_acum
+BEAR (s=0)     3667.4021      5932.4600        5100.5376      -0.6333       -0.4068         -0.4899
+BULL (s=4)    63298.2852     31216.3887       41169.8359       5.3298        2.1216          3.1170
+
+======================================================================
+Done.
+======================================================================

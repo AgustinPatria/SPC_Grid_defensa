@@ -1,0 +1,119 @@
+======================================================================
+SINTETICO: comparacion mu_hat con p_sign vs p_hist vs p_dl
+======================================================================
+
+Construyendo ctx mu_hat_source='p_sign'...
+  mu_hat[(SPX, bear)] = -1.277%/sem
+  mu_hat[(SPX, bull)] = +1.187%/sem
+  mu_mix(SPX): mean=-0.440%, std=0.4175%
+  mu_hat[(CMC200, bear)] = -3.853%/sem
+  mu_hat[(CMC200, bull)] = +3.442%/sem
+  mu_mix(CMC200): mean=-0.666%, std=1.1939%
+
+Construyendo ctx mu_hat_source='p_hist'...
+  mu_hat[(SPX, bear)] = -0.314%/sem
+  mu_hat[(SPX, bull)] = +0.171%/sem
+  mu_mix(SPX): mean=-0.149%, std=0.0822%
+  mu_hat[(CMC200, bear)] = -1.494%/sem
+  mu_hat[(CMC200, bull)] = +0.874%/sem
+  mu_mix(CMC200): mean=-0.460%, std=0.3875%
+
+Construyendo ctx mu_hat_source='p_dl'...
+  mu_hat[(SPX, bear)] = -0.147%/sem
+  mu_hat[(SPX, bull)] = +0.131%/sem
+  mu_mix(SPX): mean=-0.053%, std=0.0471%
+  mu_hat[(CMC200, bear)] = -0.735%/sem
+  mu_hat[(CMC200, bull)] = +0.427%/sem
+  mu_mix(CMC200): mean=-0.228%, std=0.1901%
+  -> inspeccion\synthetic_phist_test_out\P1_muhat.csv
+
+--- mu_hat por (asset, regime) ---
+source          p_dl  p_hist  p_sign
+asset  regime                       
+CMC200 bear   -0.735  -1.494  -3.853
+       bull    0.427   0.874   3.442
+SPX    bear   -0.147  -0.314  -1.277
+       bull    0.131   0.171   1.187
+  -> inspeccion\synthetic_phist_test_out\P2_mumix_compare.png
+  -> inspeccion\synthetic_phist_test_out\P2_mumix_compare.csv
+
+--- Grid por mu_hat source ---
+
+Grilla 5x3 en mu_hat_source='p_sign'...
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.3508  V=[$3,439 .. $13,070]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.3864  V=[$3,489 .. $13,131]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.4193  V=[$3,891 .. $13,437]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.3396  V=[$3,439 .. $13,070]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.3754  V=[$3,489 .. $13,131]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.4083  V=[$3,891 .. $13,437]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.3340  V=[$3,439 .. $13,070]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.3698  V=[$3,489 .. $13,131]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.4028  V=[$3,891 .. $13,437]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.3283  V=[$3,439 .. $13,070]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.3643  V=[$3,489 .. $13,131]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.3973  V=[$3,871 .. $13,485]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.3227  V=[$3,439 .. $13,070]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.3588  V=[$3,489 .. $13,131]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_phist_test.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=1.80, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_phist_test.py:143: UserWarning: g*_worst cae en frontera del grid (m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.3917  V=[$3,837 .. $13,568]
+  g*=(1.80, 1.0)  regret=$100.67  V mean=$8,455  range=[$3,837, $13,568]
+
+Grilla 5x3 en mu_hat_source='p_hist'...
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.2102  V=[$4,616 .. $16,606]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.2201  V=[$4,911 .. $17,900]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.2263  V=[$4,911 .. $17,900]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.2015  V=[$4,612 .. $16,356]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.2106  V=[$4,911 .. $17,900]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.2169  V=[$4,911 .. $17,900]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.1970  V=[$4,617 .. $16,326]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.2058  V=[$4,889 .. $17,915]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.2117  V=[$4,939 .. $17,732]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.1924  V=[$4,674 .. $16,364]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.2006  V=[$4,860 .. $17,920]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.2057  V=[$4,958 .. $17,603]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.1876  V=[$4,695 .. $16,575]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.1950  V=[$4,889 .. $17,782]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_phist_test.py:143: UserWarning: g*_worst cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.1993  V=[$4,971 .. $17,518]
+  g*=(0.90, 0.5)  regret=$81.36  V mean=$10,662  range=[$4,911, $17,900]
+
+Grilla 5x3 en mu_hat_source='p_dl'...
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.0735  V=[$4,832 .. $16,766]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.0787  V=[$4,939 .. $17,727]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.0814  V=[$5,017 .. $17,181]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.0631  V=[$4,872 .. $17,385]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.0657  V=[$5,001 .. $17,304]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.0672  V=[$5,017 .. $17,181]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.0567  V=[$4,912 .. $17,341]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.0587  V=[$5,008 .. $17,251]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.0601  V=[$5,017 .. $17,181]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.0499  V=[$4,936 .. $17,314]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.0517  V=[$5,012 .. $17,219]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.0530  V=[$5,017 .. $17,181]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.0431  V=[$4,952 .. $17,296]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.0446  V=[$5,015 .. $17,198]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_phist_test.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_phist_test.py:143: UserWarning: g*_worst cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.0459  V=[$5,017 .. $17,181]
+  g*=(0.30, 0.5)  regret=$74.98  V mean=$10,568  range=[$4,939, $17,727]
+  -> inspeccion\synthetic_phist_test_out\P3_grid.csv
+  -> inspeccion\synthetic_phist_test_out\P4_w_policy.png
+  -> inspeccion\synthetic_phist_test_out\P4_w_policy.csv
+  -> inspeccion\synthetic_phist_test_out\P5_backtest.png
+  -> inspeccion\synthetic_phist_test_out\P5_backtest.csv
+
+======================================================================
+RESUMEN BACKTEST
+======================================================================
+  OPT_base       cap_final=$ 29,649.69  ret=+196.50%
+  Naive_RB       cap_final=$  7,378.76  ret=-26.21%
+  Naive_BH       cap_final=$  7,424.52  ret=-25.75%
+  RG_p_sign      cap_final=$ 20,300.49  ret=+103.00%
+  RG_p_hist      cap_final=$ 12,073.68  ret=+20.74%
+  RG_p_dl        cap_final=$ 11,281.39  ret=+12.81%

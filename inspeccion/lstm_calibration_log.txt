@@ -1,0 +1,44 @@
+======================================================================
+CALIBRACION DEL LSTM: por que p_bull < 0.5?
+======================================================================
+Cargando modelo y datos...
+  -> inspeccion\lstm_calibration_out\1_returns_stats.png
+  -> inspeccion\lstm_calibration_out\1_returns_stats.csv
+
+--- Stats de retornos reales por split ---
+ asset split  n_weeks  mean_pct  median_pct  std_pct   skew  n_bull  true_p_bull
+   SPX TRAIN       72     0.038      -0.121    2.832  0.148      34        0.472
+   SPX VALID       15    -0.600      -0.313    1.565  0.082       6        0.400
+   SPX  TEST       16     1.332       1.230    1.428  1.254      15        0.938
+CMC200 TRAIN       72    -0.428      -0.313    9.001 -0.779      34        0.472
+CMC200 VALID       15     0.387      -0.111    5.111  0.082       7        0.467
+CMC200  TEST       16     2.676       2.214    5.077  0.414      11        0.688
+  -> inspeccion\lstm_calibration_out\2_quintiles_pred.png
+  -> inspeccion\lstm_calibration_out\2_quintiles_pred.csv
+  -> inspeccion\lstm_calibration_out\3_pbull_compare.csv
+
+--- p_bull predicho vs real por split ---
+ asset split  pred_pbull_mean  pred_pbull_std  real_pbull  median_quintile_pred_mean  median_quintile_pred_median  frac_median_quintile_neg
+   SPX TRAIN           0.5306          0.0952      0.4722                     0.0011                       0.0021                    0.3472
+CMC200 TRAIN           0.4722          0.0961      0.4722                    -0.0040                      -0.0040                    0.6389
+   SPX VALID           0.5200          0.0980      0.4000                     0.0008                       0.0014                    0.4000
+CMC200 VALID           0.4533          0.0884      0.4667                    -0.0057                      -0.0077                    0.7333
+   SPX  TEST           0.5625          0.0781      0.9375                     0.0029                       0.0020                    0.1875
+CMC200  TEST           0.4625          0.0927      0.6875                    -0.0077                      -0.0097                    0.6875
+  -> inspeccion\lstm_calibration_out\3_pbull_compare.png
+
+--- Mediana de retornos TRAIN por activo ---
+  SPX: -0.121%/sem
+  CMC200: -0.313%/sem
+  -> inspeccion\lstm_calibration_out\4_threshold_sensitivity.csv
+  -> inspeccion\lstm_calibration_out\4_threshold_sensitivity.png
+  -> inspeccion\lstm_calibration_out\5_diagnostico.csv
+
+--- Diagnostico resumen ---
+ asset  H1_median_real_TRAIN  H1_median_real_TEST  H2_q05_pred_TRAIN  H2_q05_pred_TEST  H3_real_pbull_TRAIN  H3_pred_pbull_TRAIN  H3_real_pbull_TEST  H3_pred_pbull_TEST
+   SPX               -0.1215               1.2303             0.1069            0.2868               0.4722               0.5306              0.9375              0.5625
+CMC200               -0.3127               2.2143            -0.3979           -0.7683               0.4722               0.4722              0.6875              0.4625
+
+======================================================================
+Done.
+======================================================================

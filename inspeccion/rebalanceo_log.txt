@@ -1,0 +1,30 @@
+======================================================================
+REBALANCEO EN EL TIEMPO - 3 setups
+======================================================================
+Construyendo contextos y resolviendo FO en cada setup...
+
+  [pdf_aligned] lambda=0.30  m=0.1  p_method=rollout  mu_hat=p_hist
+    status=optimal_local  z=0.8304
+
+  [legacy] lambda=0.30  m=0.1  p_method=walking  mu_hat=p_dl
+    status=optimal_local  z=0.4801
+
+  [opt_base] lambda=1.00  m=1.0  p_method=None  mu_hat=None
+    status=optimal_local  z=0.3909
+  -> inspeccion\rebalanceo_out\1_pesos_compare.png
+  -> inspeccion\rebalanceo_out\1_pesos_compare.csv
+  -> inspeccion\rebalanceo_out\2_turnover_compare.png
+  -> inspeccion\rebalanceo_out\2_turnover_compare.csv
+  -> inspeccion\rebalanceo_out\3_costos_acumulados.png
+  -> inspeccion\rebalanceo_out\3_costos_acumulados.csv
+  -> inspeccion\rebalanceo_out\4_metricas.csv
+
+--- Metricas agregadas ---
+      setup  lambda      m      z  turnover_total  costo_total  w_SPX_mean  w_SPX_min  w_SPX_max  w_SPX_std  w_CMC200_mean  w_CMC200_min  w_CMC200_max  w_CMC200_std
+pdf_aligned  0.3000 0.1000 0.8304          1.0000       0.0025      0.0000     0.0000     0.0000     0.0000         1.0000        1.0000        1.0000        0.0000
+     legacy  0.3000 0.1000 0.4801          2.9523       0.0074      0.1612     0.1185     0.3015     0.0618         0.8388        0.6985        0.8815        0.0618
+   opt_base  1.0000 1.0000 0.3909          0.7224       0.0018      0.7879     0.5640     0.8434     0.0691         0.2121        0.1566        0.4360        0.0691
+
+======================================================================
+Done.
+======================================================================

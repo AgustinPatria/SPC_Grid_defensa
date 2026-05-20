@@ -1,0 +1,75 @@
+======================================================================
+PADDING ABLATION - p_bull[:H] padding vs trim post-warmup
+======================================================================
+Cargando checkpoint DL para leer H...
+  H = 60  T = 163  =>  no-pad: T_eff = 103 periodos
+
+Construyendo DL ctx padded (lleva ~10s)...
+  DL padded: T_vals = 1..163, scenarios = (5, 163, 2)
+Construyendo DL ctx no-pad (trim_post_warmup)...
+  DL no-pad: T_vals = 1..103, scenarios = (5, 103, 2)
+Construyendo OPT base ctx padded (load_market_data)...
+  OPT padded: T_vals = 1..163
+Construyendo OPT base ctx no-pad (mismo trim que DL)...
+  OPT no-pad: T_vals = 1..103
+  -> inspeccion\padding_ablation_out\1_pbull_compare.png
+  -> inspeccion\padding_ablation_out\1_pbull_compare.csv
+
+--- Corriendo grilla 5x3=15 solves en DL padded ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.4801  V=[$3,996 .. $57,439]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.4787  V=[$4,131 .. $56,075]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.4778  V=[$4,145 .. $55,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.4078  V=[$5,812 .. $33,700]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.4071  V=[$5,874 .. $33,469]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.4065  V=[$5,872 .. $33,457]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.4122  V=[$6,058 .. $31,329]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.4114  V=[$6,106 .. $31,167]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.4107  V=[$6,106 .. $31,156]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4221  V=[$6,208 .. $29,968]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4213  V=[$6,246 .. $29,843]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4204  V=[$6,247 .. $29,832]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4347  V=[$6,309 .. $29,087]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4338  V=[$6,341 .. $28,985]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\padding_ablation.py:185: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res_pad = compute_regret_and_select(V_df_pad)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\padding_ablation.py:185: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res_pad = compute_regret_and_select(V_df_pad)
+z=0.4329  V=[$6,342 .. $28,974]
+
+--- Corriendo grilla 5x3=15 solves en DL no-pad ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.2955  V=[$5,417 .. $28,890]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.2943  V=[$5,515 .. $28,314]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.2935  V=[$5,586 .. $28,078]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.2539  V=[$7,129 .. $20,714]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.2532  V=[$7,179 .. $20,551]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.2526  V=[$7,179 .. $20,586]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.2572  V=[$7,352 .. $19,772]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.2564  V=[$7,390 .. $19,655]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.2556  V=[$7,392 .. $19,679]
+  [10/15] lambda=1.50  m=0.1 ... z=0.2636  V=[$7,486 .. $19,219]
+  [11/15] lambda=1.50  m=0.5 ... z=0.2628  V=[$7,517 .. $19,128]
+  [12/15] lambda=1.50  m=1.0 ... z=0.2619  V=[$7,519 .. $19,146]
+  [13/15] lambda=1.80  m=0.1 ... z=0.2718  V=[$7,575 .. $18,856]
+  [14/15] lambda=1.80  m=0.5 ... z=0.2709  V=[$7,602 .. $18,784]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\padding_ablation.py:190: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res_nop = compute_regret_and_select(V_df_nop)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\padding_ablation.py:190: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res_nop = compute_regret_and_select(V_df_nop)
+z=0.2699  V=[$7,604 .. $18,796]
+  -> inspeccion\padding_ablation_out\2_grid_compare.csv
+  -> inspeccion\padding_ablation_out\3_grid_compare.png
+  -> inspeccion\padding_ablation_out\4_backtest_padded.csv
+  -> inspeccion\padding_ablation_out\4_backtest_padded.png
+  -> inspeccion\padding_ablation_out\4_backtest_nopad.csv
+  -> inspeccion\padding_ablation_out\4_backtest_nopad.png
+  -> inspeccion\padding_ablation_out\5_terminal_summary.csv
+  -> inspeccion\padding_ablation_out\5_terminal_summary.png
+
+======================================================================
+RESUMEN
+======================================================================
+  [padded] g*_mean = (lambda=0.30, m=0.1) mean_regret = $1,459
+  [nopad ] g*_mean = (lambda=0.30, m=0.5) mean_regret = $997
+  [padded] backtest hist (163p): OPT=+45.22%  RG=-13.20%  NaiveRB=+20.92%  NaiveBH=+22.58%
+  [nopad ] backtest hist (103p): OPT=+6.82%  RG=-12.98%  NaiveRB=-0.92%  NaiveBH=-0.25%
+======================================================================

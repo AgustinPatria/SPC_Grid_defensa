@@ -1,0 +1,82 @@
+======================================================================
+MU_HAT LEAKAGE - estimacion full sample vs train-only
+======================================================================
+  H = 60  T_dataset = 163  T = 163
+  TRAIN window: t = 61..132
+  Test window: t = 148..163  (16 semanas)
+
+Construyendo DL ctx FULL (mu_hat sobre 1..T, default)...
+Construyendo OPT ctx FULL (mu_hat sobre 1..T)...
+Construyendo DL ctx TRAIN (mu_hat solo con t=1..t_train_last)...
+Construyendo OPT ctx TRAIN (mu_hat solo con t=1..t_train_last)...
+
+Recortando ambos al TEST window via trim_post_warmup...
+  Setup full : T_vals = 1..16, scenarios = (5, 16, 2)
+  Setup train: T_vals = 1..16, scenarios = (5, 16, 2)
+  -> inspeccion\muhat_leakage_out\1_muhat_compare.csv
+
+--- mu_hat full vs train ---
+ asset regime  mu_hat_full  mu_hat_train  mu_diff_pct  sigma_hat_full  sigma_hat_train  sigma_diff_pct
+   SPX   bear     0.001572      0.001123    -0.285754        0.000588         0.000657        0.117337
+   SPX   bull     0.002108      0.001577    -0.251848        0.000501         0.000540        0.078437
+CMC200   bear     0.005760      0.003598    -0.375402        0.009435         0.010908        0.156050
+CMC200   bull     0.002229     -0.001181    -1.530060        0.009623         0.011300        0.174253
+
+--- Grilla 5x3=15 solves en setup=full ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.0462  V=[$6,770 .. $13,651]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.0455  V=[$6,834 .. $13,612]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.0449  V=[$6,933 .. $13,544]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.0396  V=[$7,696 .. $12,566]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.0391  V=[$7,666 .. $12,642]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.0386  V=[$7,632 .. $12,687]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.0401  V=[$7,821 .. $12,410]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.0395  V=[$7,798 .. $12,468]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.0388  V=[$7,772 .. $12,502]
+  [10/15] lambda=1.50  m=0.1 ... z=0.0411  V=[$7,896 .. $12,316]
+  [11/15] lambda=1.50  m=0.5 ... z=0.0404  V=[$7,878 .. $12,364]
+  [12/15] lambda=1.50  m=1.0 ... z=0.0396  V=[$7,857 .. $12,391]
+  [13/15] lambda=1.80  m=0.1 ... z=0.0424  V=[$7,947 .. $12,254]
+  [14/15] lambda=1.80  m=0.5 ... z=0.0416  V=[$7,932 .. $12,295]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\muhat_leakage.py:200: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\muhat_leakage.py:200: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.0407  V=[$7,914 .. $12,317]
+
+--- Grilla 5x3=15 solves en setup=train ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.0235  V=[$8,158 .. $11,994]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.0225  V=[$8,122 .. $12,054]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.0213  V=[$8,030 .. $12,170]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.0267  V=[$8,174 .. $11,988]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.0257  V=[$8,175 .. $11,988]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.0245  V=[$8,157 .. $12,011]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.0284  V=[$8,175 .. $11,988]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.0274  V=[$8,175 .. $11,988]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.0261  V=[$8,172 .. $11,992]
+  [10/15] lambda=1.50  m=0.1 ... z=0.0300  V=[$8,175 .. $11,988]
+  [11/15] lambda=1.50  m=0.5 ... z=0.0290  V=[$8,175 .. $11,988]
+  [12/15] lambda=1.50  m=1.0 ... z=0.0278  V=[$8,175 .. $11,989]
+  [13/15] lambda=1.80  m=0.1 ... z=0.0316  V=[$8,175 .. $11,988]
+  [14/15] lambda=1.80  m=0.5 ... z=0.0306  V=[$8,175 .. $11,988]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\muhat_leakage.py:200: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\muhat_leakage.py:200: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.0294  V=[$8,175 .. $11,988]
+  -> inspeccion\muhat_leakage_out\2_grid_compare.csv
+  -> inspeccion\muhat_leakage_out\2_grid_compare.png
+  -> inspeccion\muhat_leakage_out\3_backtest_full.csv
+  -> inspeccion\muhat_leakage_out\3_backtest_full.png
+  -> inspeccion\muhat_leakage_out\3_backtest_train.csv
+  -> inspeccion\muhat_leakage_out\3_backtest_train.png
+  -> inspeccion\muhat_leakage_out\4_terminal_summary.csv
+  -> inspeccion\muhat_leakage_out\4_terminal_summary.png
+
+======================================================================
+RESUMEN
+======================================================================
+  [mu_hat=full ] g*_mean=(lam=0.30, m=0.1)  regret=$421
+                       backtest: OPT=+24.21%  RG=+34.79%  NaiveRB=+29.75%  NaiveBH=+29.86%
+  [mu_hat=train] g*_mean=(lam=0.30, m=1.0)  regret=$59
+                       backtest: OPT=+21.44%  RG=+22.82%  NaiveRB=+29.75%  NaiveBH=+29.86%
+======================================================================

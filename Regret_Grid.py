@@ -54,7 +54,8 @@ from dl.regimen_predicted import regimen_from_deciles
 # 0) Carga de datos historicos + momentos por regimen (Opcion B del PDF)
 # ================================================================
 
-def load_market_data(base_dir_str: str | Path | None = None):
+def load_market_data(base_dir_str: str | Path | None = None,
+                     moments_window=None):
     """
     Carga los CSVs, procesa probabilidades y retornos,
     y calcula momentos mezclados (mu_mix, sigma_mix).
@@ -62,6 +63,12 @@ def load_market_data(base_dir_str: str | Path | None = None):
 
     Nombres de archivos, activos, regimenes, w0, c_base y Capital_inicial
     se leen de `config.py`.
+
+    moments_window: tupla (t_start, t_end) inclusive sobre el indice t de los
+        CSVs. Si None (default) estima mu_hat y sigma_hat sobre toda la serie
+        — es lo que hereda OPT base del GAMS original. Si se pasa, restringe
+        la estimacion al rango indicado (p.ej. solo TRAIN del LSTM para una
+        comparacion sin leakage de info futura).
     """
     BASE_DIR = Path(base_dir_str) if base_dir_str is not None else DATA_DIR
 
@@ -85,28 +92,33 @@ def load_market_data(base_dir_str: str | Path | None = None):
     r = {a: ret[a].set_index("t")[RETURN_COL[a]] for a in assets}
     p = {a: prob[a].set_index("t")[regimes]      for a in assets}
 
-    den_mu    = {}
+    def _slice_mom(s):
+        if moments_window is None:
+            return s
+        a, b = moments_window
+        return s.loc[a:b]
+
     mu_hat    = {}
-    den_sig   = {}
     sigma_hat = {}
 
     for i in assets:
         for k in regimes:
-            den_mu[(i, k)] = p[i][k].sum()
-            if den_mu[(i, k)] > 0:
-                mu_hat[(i, k)] = (p[i][k] * r[i]).sum() / den_mu[(i, k)]
-            else:
-                mu_hat[(i, k)] = 0.0
+            p_w = _slice_mom(p[i][k])
+            r_w = _slice_mom(r[i])
+            den = p_w.sum()
+            mu_hat[(i, k)] = ((p_w * r_w).sum() / den) if den > 0 else 0.0
 
     for i in assets:
         for j in assets:
             for k in regimes:
-                pi_k = p[i][k]
-                pj_k = p[j][k]
-                den_sig[(i, j, k)] = (pi_k * pj_k).sum()
-                if den_sig[(i, j, k)] > 0:
-                    term = pi_k * pj_k * (r[i] - mu_hat[(i, k)]) * (r[j] - mu_hat[(j, k)])
-                    sigma_hat[(i, j, k)] = term.sum() / den_sig[(i, j, k)]
+                pi_w = _slice_mom(p[i][k])
+                pj_w = _slice_mom(p[j][k])
+                ri_w = _slice_mom(r[i])
+                rj_w = _slice_mom(r[j])
+                den  = (pi_w * pj_w).sum()
+                if den > 0:
+                    term = pi_w * pj_w * (ri_w - mu_hat[(i, k)]) * (rj_w - mu_hat[(j, k)])
+                    sigma_hat[(i, j, k)] = term.sum() / den
                 else:
                     sigma_hat[(i, j, k)] = 0.0
 
@@ -143,6 +155,7 @@ def load_market_data(base_dir_str: str | Path | None = None):
         "c_base":          dict(C_BASE),
         "w0":              dict(W0),
         "r":               r,
+        "p_hist":          p,
         "Capital_inicial": CAPITAL_INICIAL,
         "V_max":           V_max,
     }
@@ -360,30 +373,93 @@ def predict_pbull_walking(model, returns_history, T):
     return p_bull
 
 
+def predict_pbull_rollout(model, initial_window, T):
+    """p_bull(t) por rollout autoregresivo desde la ULTIMA ventana observada
+    (lectura alineada al PDF, sec. 2.5 paso 1 + ec. 15).
+
+    Para t = 1..T, en cada paso:
+      1. aplica el LSTM a la ventana actual y obtiene quintiles r_hat^(q),
+      2. calcula p_bull(t) = (1/|Q|) sum_q 1{r_hat^(q) >= 0}  (ec. 15),
+      3. avanza la ventana con el QUINTIL MEDIANO (proxy puntual; equivale
+         a un "escenario mediano" sin muestreo aleatorio),
+      4. repite.
+
+    A diferencia de `predict_pbull_walking`, aqui el LSTM solo ve retornos
+    REALES en la ventana inicial. Para t > 1 la ventana ya esta poblada con
+    proyecciones propias — no hay info futura entrando como input.
+
+    initial_window: (H, A) - los H retornos mas recientes del historico.
+    return:         (T, A) - p_bull alineado a t = 1..T del FUTURO.
+    """
+    cfg = model.config
+    H, A, Q = cfg.H, cfg.n_assets, cfg.n_quantiles
+    if initial_window.shape != (H, A):
+        raise ValueError(
+            f"initial_window shape {initial_window.shape} != (H={H}, A={A})"
+        )
+
+    window = initial_window.astype(np.float32).copy()       # (H, A)
+    p_bull = np.empty((T, A), dtype=np.float32)
+    median_idx = Q // 2                                     # quintil 0.5
+
+    for t in range(T):
+        x = ((window - model.mean) / model.std).astype(np.float32)[None, :, :]
+        x_tensor = torch.from_numpy(x)
+        with torch.no_grad():
+            outs = [net(x_tensor).numpy()[0] for net in model.nets]   # K * (A, Q)
+        preds = np.mean(np.stack(outs, axis=0), axis=0)               # (A, Q)
+        preds = np.sort(preds, axis=-1)                               # monotonicidad
+
+        p_bull[t] = (preds >= 0.0).mean(axis=-1).astype(np.float32)   # ec. 15
+
+        # Avanzar ventana con la mediana (proxy puntual del rollout).
+        r_next = preds[:, median_idx]                                 # (A,)
+        window = np.concatenate([window[1:, :], r_next[None, :]], axis=0)
+
+    return p_bull
+
+
 # ================================================================
 # 2) Contexto DL -> dict compatible con solve_portfolio
 # ================================================================
 
-def _compute_hist_moments(r_hist, p_hist, assets, regimes):
-    """Replica el calculo de mu_hat/sigma_hat de load_market_data (Opcion B)."""
+def _compute_hist_moments(r_hist, p_hist, assets, regimes, moments_window=None):
+    """Replica el calculo de mu_hat/sigma_hat de load_market_data (Opcion B).
+
+    moments_window: tupla (t_start, t_end) inclusive sobre el indice temporal
+        de r_hist/p_hist. Si None (default) usa toda la serie disponible.
+        Cuando se pasa, mu_hat y sigma_hat se estiman SOLO con datos en la
+        ventana indicada — util para evitar leakage de info futura en la
+        estimacion de momentos (p.ej. fijar la ventana a TRAIN del LSTM).
+    """
+    def _slice(s):
+        if moments_window is None:
+            return s
+        a, b = moments_window
+        return s.loc[a:b]
+
     mu_hat = {}
     for i in assets:
         for k in regimes:
-            den = p_hist[i][k].sum()
-            mu_hat[(i, k)] = ((p_hist[i][k] * r_hist[i]).sum() / den
+            p_w = _slice(p_hist[i][k])
+            r_w = _slice(r_hist[i])
+            den = p_w.sum()
+            mu_hat[(i, k)] = ((p_w * r_w).sum() / den
                               if den > 0 else 0.0)
 
     sigma_hat = {}
     for i in assets:
         for j in assets:
             for k in regimes:
-                pi_k = p_hist[i][k]
-                pj_k = p_hist[j][k]
-                den  = (pi_k * pj_k).sum()
+                pi_w = _slice(p_hist[i][k])
+                pj_w = _slice(p_hist[j][k])
+                ri_w = _slice(r_hist[i])
+                rj_w = _slice(r_hist[j])
+                den  = (pi_w * pj_w).sum()
                 if den > 0:
-                    term = (pi_k * pj_k
-                            * (r_hist[i] - mu_hat[(i, k)])
-                            * (r_hist[j] - mu_hat[(j, k)]))
+                    term = (pi_w * pj_w
+                            * (ri_w - mu_hat[(i, k)])
+                            * (rj_w - mu_hat[(j, k)]))
                     sigma_hat[(i, j, k)] = term.sum() / den
                 else:
                     sigma_hat[(i, j, k)] = 0.0
@@ -393,26 +469,67 @@ def _compute_hist_moments(r_hist, p_hist, assets, regimes):
 def build_dl_context(data_dir, checkpoint_path, T=T_HORIZON,
                      N_candidates=N_CANDIDATES, n_scenarios=N_SCENARIOS,
                      seed=SCENARIO_SEED, summary_asset=SUMMARY_ASSET,
-                     position=None):
+                     position=None, moments_window=None,
+                     p_method: str = "walking",
+                     mu_hat_source: str = "p_sign"):
     """
     Construye un contexto compatible con solve_portfolio siguiendo la
-    descomposicion por regimen del PDF (ec. 2-5), con F2 (LSTM walking)
-    como fuente unica de p_{i,k,t}.
+    descomposicion por regimen del PDF (ec. 2-5).
 
-    Diseno:
-      - p_{i,k,t} = predict_pbull_walking (LSTM aplicado a la ventana real
-        previa, ec. 15 del PDF). Misma fuente para los momentos por regimen
-        (ec. 2-3) y para la mezcla por periodo (ec. 4-5).
-      - mu_hat[(i,k)], sigma_hat[(i,j,k)] = ec. (2)-(3) con esa p.
-      - mu_mix(i,t), sigma_mix(i,j,t)     = ec. (4)-(5) con esa p.
-      - 5 escenarios = quintiles del rollout autoregresivo del LSTM.
+    Defaults PDF-aligned (ver HALLAZGOS_ALINEAMIENTO_PDF.md). Para
+    reproducir el comportamiento legacy del codigo, usar
+    p_method='walking', mu_hat_source='p_dl'.
 
-    Nota sobre coherencia ex-ante / ex-post:
-      La FO ve mu_mix derivado del walking; los escenarios viven en el
-      rollout autoregresivo. Son dos procesos distintos => existe una
-      grieta entre lo que ve la FO y lo que viven los escenarios.
-      Cuantificarla via `inspeccion/inputs_out/6_coherencia_*.csv`.
+    p_method: 'walking' (default — captura variacion temporal en la practica),
+        'rollout' (PDF-pure pero estructuralmente roto), 'scenarios'.
+        Ver HALLAZGOS_ALINEAMIENTO_PDF.md secciones 4 y 12 para la justificacion
+        completa del default.
+        - 'walking': aplica el LSTM a ventanas REALES r_hist[t-H..t-1] para
+          construir p_dl(t). Usa retornos reales como input — eso es "info que
+          un trader real no tendria al planificar el futuro" si se interpreta
+          t=1..T como periodos futuros. Sin embargo, validado en
+          synthetic_walking_test que walking captura la senal temporal cuando
+          existe; rollout no lo hace incluso con data sintetica perfecta.
+        - 'rollout': avanza autoregresivamente desde la ultima ventana
+          observada con quintil mediano como proxy. Deterministico. **COLAPSA A
+          UN PUNTO FIJO** despues de H pasos (exposure bias clasico de modelos
+          autoregresivos). mu_mix(t) queda casi constante => el regret-grid
+          degenera (todas las celdas dan misma V). Demostrado en
+          synthetic_walking_test: incluso con data sintetica de senal clara
+          (sinusoide period=30, p_hist std=0.18), rollout produce p_dl
+          constante = 0.60. Usar solo como referencia de "lo que el PDF
+          parece pedir literalmente".
+        - 'scenarios': calcula p_dl(t, A) = (1/N) Σ_s 1{candidates[s, t, A]
+          >= 0}, promediando la ec. 15 sobre los N escenarios candidatos.
+          Tambien tiende a aplanar por la ley de grandes numeros del promedio.
+
+    mu_hat_source: 'p_sign' (default, resuelve inconsistencia de regimen
+        ver HALLAZGOS_ALINEAMIENTO_PDF.md), 'p_hist' (PDF literal), o
+        'p_dl' (legacy).
+        - 'p_sign': oraculo historico con la MISMA regla del LSTM
+          (ec. 15: bull si r >= BULL_THRESHOLD). Da gap real entre regimenes
+          (SPX ~3.7%/sem, CMC ~14%/sem) y resuelve la inconsistencia entre
+          la definicion de regimen del estimador y la del LSTM. Es un
+          estimador historico (no leakage del futuro), conceptualmente analogo
+          a estimar media o varianza muestral sobre datos disponibles.
+        - 'p_hist': lectura literal del PDF sec. 1.3 — usa las probabilidades
+          del CSV historico (HMM-derived). Caveat: empiricamente la accuracy
+          de p_hist(bull) vs (r >= 0) es ~52-56% (apenas mejor que azar),
+          entonces mu_hat(bull) ≈ mu_hat(bear) (incluso con signo invertido)
+          y la mezcla por periodo no genera variacion temporal en mu_mix.
+          Disponible para reproducir el comportamiento literal del PDF.
+        - 'p_dl': estima mu_hat con las probabilidades del LSTM, agregando
+          dependencia circular entre el estimador y la prediccion. Legacy.
+
+    Otros:
+      - mu_hat[(i,k)], sigma_hat[(i,j,k)] = ec. (2)-(3).
+      - mu_mix(i,t), sigma_mix(i,j,t)     = ec. (4)-(5).
+      - 5 escenarios = quintiles del rollout autoregresivo (sec. 2.5).
     """
+    if p_method not in {"walking", "rollout", "scenarios"}:
+        raise ValueError(f"p_method invalido: {p_method!r}")
+    if mu_hat_source not in {"p_dl", "p_hist", "p_sign"}:
+        raise ValueError(f"mu_hat_source invalido: {mu_hat_source!r}")
     data_dir = Path(data_dir)
     base_ctx = load_market_data(str(data_dir))
     assets   = list(base_ctx["assets"])
@@ -428,25 +545,73 @@ def build_dl_context(data_dir, checkpoint_path, T=T_HORIZON,
     initial_window = returns_history[-H:, :]             # (H, A)
     T_vals = list(range(1, T + 1))
 
-    # --- p_{i,k,t} = F2: LSTM walking sobre ventana real previa (ec. 15) ---
-    p_bull_walking = predict_pbull_walking(model, returns_history, T)  # (T, A)
-    p_bear_walking = 1.0 - p_bull_walking
+    # --- p_{i,k,t} segun p_method ---
+    # En modo 'scenarios' necesitamos los N candidatos antes para promediar
+    # la ec. 15 sobre ellos. Los reusamos despues para reducir a 5 reps =>
+    # no se duplica cómputo y la coherencia ex-ante/ex-post es exacta.
+    candidates_cache = None
+    if p_method == "scenarios":
+        candidates_cache = generate_candidate_scenarios(
+            model, initial_window, N=N_candidates, T=T, seed=seed,
+        )                                                    # (N, T, A)
+        # ec. 15 promediada: para cada (t, A), fraccion de escenarios con r >= 0.
+        p_bull_arr = (candidates_cache >= 0.0).mean(axis=0).astype(np.float32)
+    elif p_method == "walking":
+        # Legacy: aplica el LSTM a ventana REAL previa. Le da al LSTM info
+        # futura via los retornos reales como input (ver docstring).
+        p_bull_arr = predict_pbull_walking(model, returns_history, T)
+    else:
+        # 'rollout': autoregresivo desde initial_window con quintil mediano
+        # como proxy. Determinístico. Suele colapsar a punto fijo.
+        p_bull_arr = predict_pbull_rollout(model, initial_window, T)
+    p_bear_arr = 1.0 - p_bull_arr
     p_dl = {
         asset: pd.DataFrame(
-            {"bear": p_bear_walking[:, ai], "bull": p_bull_walking[:, ai]},
+            {"bear": p_bear_arr[:, ai], "bull": p_bull_arr[:, ai]},
             index=T_vals,
         )
         for ai, asset in enumerate(assets)
     }
 
-    # r_hist truncado a t=1..T y reindexado a T_vals para alinear con p_dl.
+    # r_hist truncado a t=1..T y reindexado a T_vals (sirve para mu_hat y
+    # para el simulador historico, no para el FO en modo rollout).
     r_hist_T = {
         i: pd.Series(r_hist[i].sort_index().values[:T], index=T_vals)
         for i in assets
     }
 
-    # --- Momentos por regimen (ec. 2-3) con p del walking ---
-    mu_hat, sigma_hat = _compute_hist_moments(r_hist_T, p_dl, assets, regimes)
+    # --- Momentos por regimen (ec. 2-3) ---
+    # mu_hat_source elige que probabilidades alimentan al estimador.
+    if mu_hat_source == "p_dl":
+        p_for_moments = p_dl
+    elif mu_hat_source == "p_hist":
+        # Usar las p del CSV historico (HMM-derived) truncadas a 1..T.
+        # Interpretacion literal del PDF sec. 1.3.
+        p_for_moments = {
+            i: pd.DataFrame(
+                base_ctx["p_hist"][i].sort_index().values[:T, :],
+                index=T_vals,
+                columns=list(base_ctx["p_hist"][i].columns),
+            )
+            for i in assets
+        }
+    else:
+        # 'p_sign': oraculo historico con la regla del LSTM (ec. 15:
+        # bull si r >= BULL_THRESHOLD). Da estimador consistente con la
+        # definicion de regimen que predice p_dl. No es leakage — es un
+        # estimador historico, analogo a media muestral.
+        from config import BULL_THRESHOLD
+        p_for_moments = {}
+        for i in assets:
+            r_i = r_hist_T[i]
+            bull_i = (r_i >= BULL_THRESHOLD).astype(float)
+            p_for_moments[i] = pd.DataFrame(
+                {"bear": (1.0 - bull_i).values, "bull": bull_i.values},
+                index=T_vals,
+            )
+    mu_hat, sigma_hat = _compute_hist_moments(
+        r_hist_T, p_for_moments, assets, regimes, moments_window=moments_window,
+    )
 
     # --- Mezcla por periodo (ec. 4-5) ---
     mu_mix    = {i: pd.Series(0.0, index=T_vals) for i in assets}
@@ -468,10 +633,14 @@ def build_dl_context(data_dir, checkpoint_path, T=T_HORIZON,
             sigma_mix[i][j] = sym
             sigma_mix[j][i] = sym
 
-    # --- N candidatos del LSTM (rollout, solo para generar los 5 escenarios) ---
-    candidates = generate_candidate_scenarios(
-        model, initial_window, N=N_candidates, T=T, seed=seed,
-    )                                                    # (N, T, A)
+    # --- N candidatos del LSTM (rollout) para generar los 5 escenarios ---
+    # Si ya se generaron arriba (modo 'scenarios'), los reutilizamos.
+    if candidates_cache is not None:
+        candidates = candidates_cache
+    else:
+        candidates = generate_candidate_scenarios(
+            model, initial_window, N=N_candidates, T=T, seed=seed,
+        )                                                # (N, T, A)
 
     from config import SCENARIO_POSITION
     pos = position if position is not None else SCENARIO_POSITION
@@ -498,6 +667,89 @@ def build_dl_context(data_dir, checkpoint_path, T=T_HORIZON,
         "mu_hat":          mu_hat,
         "sigma_hat":       sigma_hat,
     }
+
+
+# ================================================================
+# 2.b) Trim del padding del walking: recorta el ctx a t = H+1..T
+# ================================================================
+
+def trim_post_warmup(ctx: dict, H: int, T_max: int | None = None,
+                     trim_scenarios: bool = True) -> dict:
+    """Recorta un contexto a t = H+1..T_max y lo re-indexa a t = 1..(T_max-H).
+
+    Objetivo: correr el optimizador (y el backtest historico) SIN el padding
+    de `predict_pbull_walking` que rellena p_bull[:H] con p_bull[H]. El padding
+    se introdujo para mantener la alineacion T_vals = 1..T del GAMS base; aqui
+    asumimos que el optimizador puede trabajar sobre un horizonte mas corto
+    (T_eff = T - H) que solo contiene t con prediccion LSTM real.
+
+    Funciona tanto con ctx de `build_dl_context` (tiene 'p_dl' y 'scenarios')
+    como con el de `load_market_data` (no los tiene). Las series time-indexed
+    (mu_mix, sigma_mix, p_dl, r) se trimean y re-indexan al rango 1..T_eff.
+    Los escenarios (n_S, T, A) se truncan a (n_S, T_eff, A): conceptualmente
+    son los primeros T_eff pasos del rollout autoregresivo desde el final
+    del historico (no se ven afectados por el padding, pero se truncan para
+    quedar alineados con el horizonte de la FO).
+
+    `r` se desplaza: r_new[i].loc[k] = r_old[i].loc[H+k]. De este modo
+    simulate_capital_opt con el ctx trimmed y la politica trimmed evalua
+    sobre los retornos del calendario *post-warmup* (semanas H+1..T_max
+    del historico), que es la ventana para la que el LSTM hizo predicciones
+    walking-window reales.
+
+    V_max, c_base, w0, Capital_inicial, assets se preservan tal cual.
+    """
+    assets = ctx["assets"]
+    if T_max is None:
+        T_max = ctx["nT"]
+    T_eff = T_max - H
+    if T_eff <= 0:
+        raise ValueError(f"T_max={T_max} <= H={H}: nada para trimear.")
+
+    new_T_vals = list(range(1, T_eff + 1))
+
+    def _trim_series(s):
+        return pd.Series(s.iloc[H:T_max].values, index=new_T_vals)
+
+    mu_mix    = {i: _trim_series(ctx["mu_mix"][i]) for i in assets}
+    sigma_mix = {
+        i: {j: _trim_series(ctx["sigma_mix"][i][j]) for j in assets}
+        for i in assets
+    }
+
+    new_ctx = dict(ctx)
+    new_ctx["mu_mix"]    = mu_mix
+    new_ctx["sigma_mix"] = sigma_mix
+    new_ctx["T_vals"]    = new_T_vals
+    new_ctx["nT"]        = T_eff
+
+    if "p_dl" in ctx:
+        new_p_dl = {}
+        for i in assets:
+            df = ctx["p_dl"][i].iloc[H:T_max].copy()
+            df.index = new_T_vals
+            new_p_dl[i] = df
+        new_ctx["p_dl"] = new_p_dl
+
+    if "p_hist" in ctx:
+        new_p_hist = {}
+        for i in assets:
+            df = ctx["p_hist"][i].iloc[H:T_max].copy()
+            df.index = new_T_vals
+            new_p_hist[i] = df
+        new_ctx["p_hist"] = new_p_hist
+
+    if trim_scenarios and "scenarios" in ctx:
+        new_ctx["scenarios"] = ctx["scenarios"][:, :T_eff, :]
+
+    if "r" in ctx:
+        new_r = {}
+        for i in assets:
+            s_full = ctx["r"][i].sort_index()
+            new_r[i] = pd.Series(s_full.iloc[H:T_max].values, index=new_T_vals)
+        new_ctx["r"] = new_r
+
+    return new_ctx
 
 
 # ================================================================

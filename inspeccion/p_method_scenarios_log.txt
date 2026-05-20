@@ -1,0 +1,80 @@
+======================================================================
+P_METHOD: ROLLOUT vs SCENARIOS
+======================================================================
+Construyendo contextos con mu_hat_source='p_hist'...
+
+  [rollout] p_method=rollout
+    SPX: p_bull mean=0.409 std=0.041  min=0.400 max=0.600  mu_mix std=0.000012
+    CMC200: p_bull mean=0.400 std=0.000  min=0.400 max=0.400  mu_mix std=0.000000
+
+  [scenarios] p_method=scenarios
+    SPX: p_bull mean=0.552 std=0.017  min=0.517 max=0.625  mu_mix std=0.000005
+    CMC200: p_bull mean=0.451 std=0.015  min=0.413 max=0.494  mu_mix std=0.000086
+  -> inspeccion\p_method_scenarios_out\1_pbull_compare.png
+  -> inspeccion\p_method_scenarios_out\1_pbull_compare.csv
+  -> inspeccion\p_method_scenarios_out\2_mumix_compare.png
+  -> inspeccion\p_method_scenarios_out\2_mumix_compare.csv
+
+--- Grilla 5x3 solves en setup=rollout ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.8304  V=[$3,667 .. $63,298]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.8294  V=[$3,667 .. $63,298]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8281  V=[$3,667 .. $63,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.5521  V=[$4,952 .. $43,609]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.5520  V=[$4,957 .. $43,551]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.5518  V=[$4,963 .. $43,476]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.5152  V=[$5,401 .. $38,267]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.5150  V=[$5,397 .. $38,310]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.5148  V=[$5,392 .. $38,364]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4989  V=[$5,677 .. $35,259]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4985  V=[$5,674 .. $35,291]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4981  V=[$5,670 .. $35,332]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4928  V=[$5,863 .. $33,351]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4923  V=[$5,861 .. $33,377]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\p_method_scenarios.py:173: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\p_method_scenarios.py:173: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4918  V=[$5,857 .. $33,410]
+
+--- Grilla 5x3 solves en setup=scenarios ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.7879  V=[$3,667 .. $63,298]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.7869  V=[$3,667 .. $63,298]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.7857  V=[$3,667 .. $63,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.5351  V=[$5,035 .. $42,557]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.5350  V=[$5,042 .. $42,505]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.5349  V=[$5,048 .. $42,430]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.5071  V=[$5,468 .. $37,518]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.5069  V=[$5,464 .. $37,560]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.5066  V=[$5,459 .. $37,612]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4977  V=[$5,734 .. $34,663]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4973  V=[$5,731 .. $34,693]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4968  V=[$5,727 .. $34,732]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4976  V=[$5,914 .. $32,849]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4971  V=[$5,912 .. $32,872]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\p_method_scenarios.py:173: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\p_method_scenarios.py:173: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4965  V=[$5,909 .. $32,905]
+  -> inspeccion\p_method_scenarios_out\3_grid_compare.csv
+  -> inspeccion\p_method_scenarios_out\3_grid_compare.png
+  -> inspeccion\p_method_scenarios_out\4_w_compare.png
+  -> inspeccion\p_method_scenarios_out\4_w_compare.csv
+
+Resolviendo OPT base para backtest...
+  -> inspeccion\p_method_scenarios_out\5_backtest_compare.png
+  -> inspeccion\p_method_scenarios_out\5_backtest_compare.csv
+  -> inspeccion\p_method_scenarios_out\6_resumen.csv
+
+======================================================================
+RESUMEN
+======================================================================
+  [rollout] mu_mix(SPX) mean=0.0019 std=0.000012  (max-min=0.0001)
+  [rollout] mu_mix(CMC200) mean=0.0063 std=0.000000  (max-min=0.0000)
+  [rollout] g*_mean=(lam=0.30, m=0.1)  mean_regret=$1,122
+
+  [scenarios] mu_mix(SPX) mean=0.0019 std=0.000005  (max-min=0.0000)
+  [scenarios] mu_mix(CMC200) mean=0.0060 std=0.000086  (max-min=0.0005)
+  [scenarios] g*_mean=(lam=0.30, m=0.5)  mean_regret=$1,149
+
+======================================================================

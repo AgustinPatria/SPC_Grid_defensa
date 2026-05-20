@@ -1,0 +1,81 @@
+======================================================================
+SINTETICO: rollout vs walking
+======================================================================
+
+Construyendo ctx 'rollout' (p_method=rollout)...
+  SPX: p_bull mean=0.600, std=0.000, range [0.600, 0.600]
+        mu_mix mean=+0.201%, std=0.0000%
+  CMC200: p_bull mean=0.600, std=0.000, range [0.600, 0.600]
+        mu_mix mean=+0.524%, std=0.0000%
+
+Construyendo ctx 'walking' (p_method=walking)...
+  SPX: p_bull mean=0.340, std=0.169, range [0.200, 0.800]
+        mu_mix mean=-0.440%, std=0.4175%
+  CMC200: p_bull mean=0.437, std=0.164, range [0.000, 0.800]
+        mu_mix mean=-0.666%, std=1.1939%
+
+--- W1: p_dl rollout vs walking vs p_hist verdadero ---
+  -> inspeccion\synthetic_walking_test_out\W1_pdl_compare.png
+  -> inspeccion\synthetic_walking_test_out\W1_pdl_compare.csv
+
+--- W2: mu_mix(t) ---
+  -> inspeccion\synthetic_walking_test_out\W2_mumix_compare.png
+  -> inspeccion\synthetic_walking_test_out\W2_mumix_compare.csv
+
+--- W3/W4: regret grid + politicas ---
+
+Grilla 5x3 en setup=rollout...
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.8497  V=[$1,266 .. $14,341]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.8487  V=[$1,266 .. $14,341]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8475  V=[$1,266 .. $14,341]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.8405  V=[$1,266 .. $14,341]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.8395  V=[$1,266 .. $14,341]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.8382  V=[$1,266 .. $14,341]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.8358  V=[$1,266 .. $14,341]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.8348  V=[$1,266 .. $14,341]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.8336  V=[$1,266 .. $14,341]
+  [10/15] lambda=1.50  m=0.1 ... z=0.8312  V=[$1,266 .. $14,341]
+  [11/15] lambda=1.50  m=0.5 ... z=0.8302  V=[$1,266 .. $14,341]
+  [12/15] lambda=1.50  m=1.0 ... z=0.8289  V=[$1,266 .. $14,341]
+  [13/15] lambda=1.80  m=0.1 ... z=0.8265  V=[$1,266 .. $14,341]
+  [14/15] lambda=1.80  m=0.5 ... z=0.8255  V=[$1,266 .. $14,341]
+  [15/15] lambda=1.80  m=1.0 ... z=0.8243  V=[$1,266 .. $14,341]
+  g*_mean=(0.90, 0.5)  regret=$0.00  V mean=$6,076  range=[$1,266, $14,341]
+
+Grilla 5x3 en setup=walking...
+  [ 1/15] lambda=0.30  m=0.1 ... z=-0.3508  V=[$3,439 .. $13,070]
+  [ 2/15] lambda=0.30  m=0.5 ... z=-0.3864  V=[$3,489 .. $13,131]
+  [ 3/15] lambda=0.30  m=1.0 ... z=-0.4193  V=[$3,891 .. $13,437]
+  [ 4/15] lambda=0.90  m=0.1 ... z=-0.3396  V=[$3,439 .. $13,070]
+  [ 5/15] lambda=0.90  m=0.5 ... z=-0.3754  V=[$3,489 .. $13,131]
+  [ 6/15] lambda=0.90  m=1.0 ... z=-0.4083  V=[$3,891 .. $13,437]
+  [ 7/15] lambda=1.20  m=0.1 ... z=-0.3340  V=[$3,439 .. $13,070]
+  [ 8/15] lambda=1.20  m=0.5 ... z=-0.3698  V=[$3,489 .. $13,131]
+  [ 9/15] lambda=1.20  m=1.0 ... z=-0.4028  V=[$3,891 .. $13,437]
+  [10/15] lambda=1.50  m=0.1 ... z=-0.3283  V=[$3,439 .. $13,070]
+  [11/15] lambda=1.50  m=0.5 ... z=-0.3643  V=[$3,489 .. $13,131]
+  [12/15] lambda=1.50  m=1.0 ... z=-0.3973  V=[$3,871 .. $13,485]
+  [13/15] lambda=1.80  m=0.1 ... z=-0.3227  V=[$3,439 .. $13,070]
+  [14/15] lambda=1.80  m=0.5 ... z=-0.3588  V=[$3,489 .. $13,131]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_walking_test.py:166: UserWarning: g*_mean cae en frontera del grid (lambda=1.80, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\synthetic_walking_test.py:166: UserWarning: g*_worst cae en frontera del grid (m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=-0.3917  V=[$3,837 .. $13,568]
+  g*_mean=(1.80, 1.0)  regret=$100.67  V mean=$8,455  range=[$3,837, $13,568]
+  -> inspeccion\synthetic_walking_test_out\W3_w_policy.png
+  -> inspeccion\synthetic_walking_test_out\W3_w_policy.csv
+  -> inspeccion\synthetic_walking_test_out\W4_grid_compare.csv
+
+--- W5: backtest sobre data sintetica realizada ---
+  -> inspeccion\synthetic_walking_test_out\W5_backtest.png
+  -> inspeccion\synthetic_walking_test_out\W5_backtest.csv
+
+======================================================================
+Done.
+======================================================================
+  RG_rollout      cap_final=$  5,743.65  ret=-42.56%
+  RG_walking      cap_final=$ 20,300.49  ret=+103.00%
+  OPT_base        cap_final=$ 29,649.69  ret=+196.50%
+  Naive_RB        cap_final=$  7,378.76  ret=-26.21%
+  Naive_BH        cap_final=$  7,424.52  ret=-25.75%

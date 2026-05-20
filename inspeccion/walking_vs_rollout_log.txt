@@ -1,0 +1,105 @@
+======================================================================
+WALKING vs ROLLOUT - alineamiento al PDF sec. 2.5 + 1.3
+======================================================================
+Construyendo OPT base ctx (referencia)...
+
+Construyendo DL ctx 'actual' (p_method=walking, mu_hat_source=p_dl)...
+  p_bull mean: SPX=0.558  CMC200=0.443
+  p_bull std : SPX=0.082  CMC200=0.082
+
+Construyendo DL ctx 'rollout_pdl' (p_method=rollout, mu_hat_source=p_dl)...
+  p_bull mean: SPX=0.409  CMC200=0.400
+  p_bull std : SPX=0.041  CMC200=0.000
+
+Construyendo DL ctx 'pdf_aligned' (p_method=rollout, mu_hat_source=p_hist)...
+  p_bull mean: SPX=0.409  CMC200=0.400
+  p_bull std : SPX=0.041  CMC200=0.000
+  -> inspeccion\walking_vs_rollout_out\1_pbull_compare.png
+  -> inspeccion\walking_vs_rollout_out\1_pbull_compare.csv
+  -> inspeccion\walking_vs_rollout_out\2_mumix_compare.png
+  -> inspeccion\walking_vs_rollout_out\2_mumix_compare.csv
+
+--- Grilla 5x3=15 solves en setup=actual ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.4801  V=[$3,996 .. $57,439]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.4787  V=[$4,131 .. $56,075]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.4778  V=[$4,145 .. $55,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.4078  V=[$5,812 .. $33,700]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.4071  V=[$5,874 .. $33,469]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.4065  V=[$5,872 .. $33,457]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.4122  V=[$6,058 .. $31,329]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.4114  V=[$6,106 .. $31,167]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.4107  V=[$6,106 .. $31,156]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4221  V=[$6,208 .. $29,968]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4213  V=[$6,246 .. $29,843]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4204  V=[$6,247 .. $29,832]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4347  V=[$6,309 .. $29,087]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4338  V=[$6,341 .. $28,985]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4329  V=[$6,342 .. $28,974]
+
+--- Grilla 5x3=15 solves en setup=rollout_pdl ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.4788  V=[$4,108 .. $55,612]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.4782  V=[$4,120 .. $55,425]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.4773  V=[$4,135 .. $55,189]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.4063  V=[$5,873 .. $33,258]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.4058  V=[$5,868 .. $33,308]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.4052  V=[$5,862 .. $33,370]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.4107  V=[$6,109 .. $30,985]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.4101  V=[$6,105 .. $31,019]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.4094  V=[$6,101 .. $31,062]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4206  V=[$6,252 .. $29,678]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4199  V=[$6,249 .. $29,704]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4190  V=[$6,245 .. $29,736]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4332  V=[$6,347 .. $28,831]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4325  V=[$6,345 .. $28,850]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4315  V=[$6,342 .. $28,877]
+
+--- Grilla 5x3=15 solves en setup=pdf_aligned ---
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.8304  V=[$3,667 .. $63,298]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.8294  V=[$3,667 .. $63,298]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8281  V=[$3,667 .. $63,298]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.5521  V=[$4,952 .. $43,609]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.5520  V=[$4,957 .. $43,551]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.5518  V=[$4,963 .. $43,476]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.5152  V=[$5,401 .. $38,267]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.5150  V=[$5,397 .. $38,310]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.5148  V=[$5,392 .. $38,364]
+  [10/15] lambda=1.50  m=0.1 ... z=0.4989  V=[$5,677 .. $35,259]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4985  V=[$5,674 .. $35,291]
+  [12/15] lambda=1.50  m=1.0 ... z=0.4981  V=[$5,670 .. $35,332]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4928  V=[$5,863 .. $33,351]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4923  V=[$5,861 .. $33,377]
+  [15/15] lambda=1.80  m=1.0 ... C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\walking_vs_rollout.py:204: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.10). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4918  V=[$5,857 .. $33,410]
+  -> inspeccion\walking_vs_rollout_out\3_grid_compare.csv
+  -> inspeccion\walking_vs_rollout_out\3_grid_compare.png
+  -> inspeccion\walking_vs_rollout_out\5_V_table_summary.csv
+  -> inspeccion\walking_vs_rollout_out\4_backtest_actual.csv
+  -> inspeccion\walking_vs_rollout_out\4_backtest_actual.png
+  -> inspeccion\walking_vs_rollout_out\4_backtest_rollout_pdl.csv
+  -> inspeccion\walking_vs_rollout_out\4_backtest_rollout_pdl.png
+  -> inspeccion\walking_vs_rollout_out\4_backtest_pdf_aligned.csv
+  -> inspeccion\walking_vs_rollout_out\4_backtest_pdf_aligned.png
+  -> inspeccion\walking_vs_rollout_out\6_terminal_summary.csv
+  -> inspeccion\walking_vs_rollout_out\6_terminal_summary.png
+
+======================================================================
+RESUMEN
+======================================================================
+  [actual       ] p=walking  mu_hat=p_dl     g*=(lam=0.30, m=0.1)  regret=$1,459
+                  backtest hist: OPT=+45.22%  RG=-13.20%  NaiveRB=+20.92%  NaiveBH=+22.58%
+  [rollout_pdl  ] p=rollout  mu_hat=p_dl     g*=(lam=0.30, m=0.1)  regret=$1,154
+                  backtest hist: OPT=+45.22%  RG=-5.21%  NaiveRB=+20.92%  NaiveBH=+22.58%
+  [pdf_aligned  ] p=rollout  mu_hat=p_hist   g*=(lam=0.30, m=0.1)  regret=$1,122
+                  backtest hist: OPT=+45.22%  RG=-20.62%  NaiveRB=+20.92%  NaiveBH=+22.58%
+======================================================================

@@ -1,0 +1,52 @@
+======================================================================
+BASELINE PREDICTORS: hay senal extractable en esta data?
+======================================================================
+
+Cargando data y construyendo splits...
+  H = 60
+  TRAIN: 72 ventanas (t=61..132)
+  VALID: 15 ventanas (t=133..147)
+  TEST : 16  ventanas (t=148..163)
+
+--- Test 1: autocorrelacion de retornos ---
+  -> inspeccion\baseline_predictors_out\1_autocorr_test.png
+  -> inspeccion\baseline_predictors_out\1_autocorr_test.csv
+
+--- Test 2: ajustando 7 modelos baseline + LSTM ---
+
+--- Computando metricas ---
+  -> inspeccion\baseline_predictors_out\2_metrics_table.csv
+
+=== METRICAS EN TEST (menor MSE/MAE/pinball, mayor sign_acc = mejor) ===
+
+[SPX]
+  Naive-zero          MSE=   3.81e-4  MAE=1.524%  sign_acc=  0.0%  pinball=  --   
+  Naive-mean          MSE=   3.72e-4  MAE=1.491%  sign_acc= 93.8%  pinball=  --   
+  AR(1)               MSE=   3.79e-4  MAE=1.565%  sign_acc= 18.8%  pinball=  --   
+  AR(5)               MSE=   3.93e-4  MAE=1.615%  sign_acc= 37.5%  pinball=  --   
+  Linear-H            MSE=  43.88e-4  MAE=5.591%  sign_acc= 43.8%  pinball=  --   
+  Logistic-sign       MSE=2102.58e-4  MAE=45.767%  sign_acc= 25.0%  pinball=  --   
+  Quantile-linear     MSE=   5.23e-4  MAE=1.794%  sign_acc= 43.8%  pinball=0.00611
+  LSTM                MSE=   2.96e-4  MAE=1.260%  sign_acc= 75.0%  pinball=0.00572
+
+[CMC200]
+  Naive-zero          MSE=  32.94e-4  MAE=4.656%  sign_acc=  0.0%  pinball=  --   
+  Naive-mean          MSE=  35.41e-4  MAE=4.816%  sign_acc= 31.2%  pinball=  --   
+  AR(1)               MSE=  36.69e-4  MAE=4.824%  sign_acc= 31.2%  pinball=  --   
+  AR(5)               MSE=  30.42e-4  MAE=4.200%  sign_acc= 62.5%  pinball=  --   
+  Linear-H            MSE= 876.75e-4  MAE=26.422%  sign_acc= 31.2%  pinball=  --   
+  Logistic-sign       MSE=1846.84e-4  MAE=40.891%  sign_acc= 62.5%  pinball=  --   
+  Quantile-linear     MSE=  46.93e-4  MAE=5.868%  sign_acc= 62.5%  pinball=0.02182
+  LSTM                MSE=  41.35e-4  MAE=5.193%  sign_acc= 37.5%  pinball=0.01675
+
+--- Plots de predicciones y pinball ---
+  -> inspeccion\baseline_predictors_out\3_predictions_test.png
+  -> inspeccion\baseline_predictors_out\4_pinball_compare.csv
+  -> inspeccion\baseline_predictors_out\4_pinball_compare.png
+
+--- Resumen ---
+  -> inspeccion\baseline_predictors_out\5_resumen.csv
+
+======================================================================
+Done. Outputs en inspeccion/baseline_predictors_out/
+======================================================================
