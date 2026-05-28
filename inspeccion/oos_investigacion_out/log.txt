@@ -1,0 +1,89 @@
+==============================================================================
+INVESTIGACION OOS — OPT vs Naive
+==============================================================================
+
+Split del LSTM: (0.7, 0.15, 0.15)  H=60  T=163
+t_test_start = 148  =>  test = t148..t163
+Periodos de test: 16
+
+==============================================================================
+INVESTIGACION 1 — mu_hat: in-sample vs train-only vs test-only
+==============================================================================
+
+mu_hat por activo y regimen, segun ventana de estimacion:
+ asset regime  mu_full  mu_train  mu_test  train-full  test-train
+   SPX   bear +0.2053%  +0.1052% +1.3479%    -0.1001%    +1.2426%
+   SPX   bull +0.1747%  +0.0324% +1.3244%    -0.1423%    +1.2920%
+CMC200   bear +0.8654%  +0.7580% +2.6517%    -0.1074%    +1.8937%
+CMC200   bull +0.2832%  -0.0155% +2.6798%    -0.2987%    +2.6952%
+
+Lectura:
+  [!] SPX bear: mu_train=+0.105% pero mu_test=+1.348% -> OPT_oos usa estimador desactualizado vs realidad del test
+  [!] SPX bull: mu_train=+0.032% pero mu_test=+1.324% -> OPT_oos usa estimador desactualizado vs realidad del test
+  [!] CMC200 bear: mu_train=+0.758% pero mu_test=+2.652% -> OPT_oos usa estimador desactualizado vs realidad del test
+  [!] CMC200 bull: mu_train=-0.015% pero mu_test=+2.680% -> OPT_oos usa estimador desactualizado vs realidad del test
+
+Retorno medio realizado en el periodo TEST (t148..t163):
+  SPX: mean=+1.3322%/sem  std=1.4752%  cum=+23.39%
+  CMC200: mean=+2.6760%/sem  std=5.2436%  cum=+49.66%
+
+==============================================================================
+INVESTIGACION 2 — Politicas: OPT in-sample vs OPT_oos vs Naive
+==============================================================================
+
+Politicas en el OOS (primeras 8 semanas y ultimas 4):
+  t  w_full_SPX  w_oos_SPX  w_full_CMC200  w_oos_CMC200
+148      0.8434     0.9534         0.1566        0.0466
+149      0.8434     0.9534         0.1566        0.0466
+150      0.8434     0.9534         0.1566        0.0466
+151      0.8434     0.9534         0.1566        0.0466
+152      0.8434     0.9534         0.1566        0.0466
+153      0.8434     0.9534         0.1566        0.0466
+154      0.8434     0.9534         0.1566        0.0466
+155      0.8434     0.9534         0.1566        0.0466
+...
+  t  w_full_SPX  w_oos_SPX  w_full_CMC200  w_oos_CMC200
+160      0.8434     0.9534         0.1566        0.0466
+161      0.8434     0.9534         0.1566        0.0466
+162      0.8434     0.9534         0.1566        0.0466
+163      0.8434     0.9534         0.1566        0.0466
+
+==============================================================================
+INVESTIGACION 3 — Descomposicion por periodo: retorno vs costos
+==============================================================================
+
+Descomposicion del capital OOS (sin redondeo):
+  OPT in-sample: ret bruto=+0.2436  cost drag=-0.0000  cap_final=$12,436.22
+  OPT_oos:       ret bruto=+0.2252  cost drag=-0.0023  cap_final=$12,225.91
+  Naive RB:                                                cap_final=$12,975.49
+  Naive BH:                                                cap_final=$12,985.62
+
+==============================================================================
+INVESTIGACION 4 — Veredicto
+==============================================================================
+
+Diagnostico del 'lo que OPT_oos creyo vs lo que paso':
+
+  SPX:
+    mu_hat(bull, train) = +0.0324%/sem  |  mu_hat(bull, test) = +1.3244%/sem  |  diff = +1.2920%
+    mu_hat(bear, train) = +0.1052%/sem  |  mu_hat(bear, test) = +1.3479%/sem  |  diff = +1.2426%
+    Realidad test (mean retorno): +1.3322%/sem  (cum +23.39%, std 1.4752%)
+
+  CMC200:
+    mu_hat(bull, train) = -0.0155%/sem  |  mu_hat(bull, test) = +2.6798%/sem  |  diff = +2.6952%
+    mu_hat(bear, train) = +0.7580%/sem  |  mu_hat(bear, test) = +2.6517%/sem  |  diff = +1.8937%
+    Realidad test (mean retorno): +2.6760%/sem  (cum +49.66%, std 5.2436%)
+
+Peso medio de la politica OPT_oos en el periodo OOS:
+  SPX: w_mean=0.9534  (naive seria 0.50)
+  CMC200: w_mean=0.0466  (naive seria 0.50)
+
+------------------------------------------------------------------------------
+RESUMEN
+------------------------------------------------------------------------------
+  OPT in-sample (cheating, mu_hat ve futuro): $12,436.22  (+24.36%)
+  OPT_oos (honest, mu_hat solo train):        $12,225.91  (+22.26%)
+  Naive 50/50 RB:                             $12,975.49  (+29.75%)
+  Naive 50/50 BH:                             $12,985.62  (+29.86%)
+
+  Ventaja informacional del cheating: $210.31  (+2.10% sobre capital inicial)

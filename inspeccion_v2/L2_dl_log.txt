@@ -1,0 +1,115 @@
+======================================================================
+L2 — Inspeccion motor DL (15 NNs + ensemble)
+======================================================================
+  Cargando 15 NNs cacheadas ...
+  [ 1/15] cell lambda=0.30 m=0.01 seed=5137475
+    cache hit -> decile_predictor_l0.30_m0.01.pt
+  [ 2/15] cell lambda=0.30 m=0.20 seed=365123474
+    cache hit -> decile_predictor_l0.30_m0.20.pt
+  [ 3/15] cell lambda=0.30 m=0.50 seed=1876655831
+    cache hit -> decile_predictor_l0.30_m0.50.pt
+  [ 4/15] cell lambda=0.70 m=0.01 seed=1153377893
+    cache hit -> decile_predictor_l0.70_m0.01.pt
+  [ 5/15] cell lambda=0.70 m=0.20 seed=956435689
+    cache hit -> decile_predictor_l0.70_m0.20.pt
+  [ 6/15] cell lambda=0.70 m=0.50 seed=830161467
+    cache hit -> decile_predictor_l0.70_m0.50.pt
+  [ 7/15] cell lambda=1.10 m=0.01 seed=56414385
+    cache hit -> decile_predictor_l1.10_m0.01.pt
+  [ 8/15] cell lambda=1.10 m=0.20 seed=13789192
+    cache hit -> decile_predictor_l1.10_m0.20.pt
+  [ 9/15] cell lambda=1.10 m=0.50 seed=1764711671
+    cache hit -> decile_predictor_l1.10_m0.50.pt
+  [10/15] cell lambda=1.50 m=0.01 seed=1981259275
+    cache hit -> decile_predictor_l1.50_m0.01.pt
+  [11/15] cell lambda=1.50 m=0.20 seed=1369181433
+    cache hit -> decile_predictor_l1.50_m0.20.pt
+  [12/15] cell lambda=1.50 m=0.50 seed=1402755660
+    cache hit -> decile_predictor_l1.50_m0.50.pt
+  [13/15] cell lambda=1.80 m=0.01 seed=400561167
+    cache hit -> decile_predictor_l1.80_m0.01.pt
+  [14/15] cell lambda=1.80 m=0.20 seed=681718436
+    cache hit -> decile_predictor_l1.80_m0.20.pt
+  [15/15] cell lambda=1.80 m=0.50 seed=1691472790
+    cache hit -> decile_predictor_l1.80_m0.50.pt
+  ensemble: 15 nets apiladas
+
+[1/5] Construyendo contextos IS (15 celdas, walking) ...
+      activos: ['SPX', 'CMC200']
+
+[2/5] Ensemble p_bull(t) IS ...
+
+[3/5] Plots ...
+  -> inspeccion_v2\L2_dl_out\01_pbull_by_cell.png
+  -> inspeccion_v2\L2_dl_out\02_dispersion.png
+  -> inspeccion_v2\L2_dl_out\03_calibration_IS.csv
+  -> inspeccion_v2\L2_dl_out\03_calibration_IS.png
+  -> inspeccion_v2\L2_dl_out\03_calibration_OOS.csv
+  -> inspeccion_v2\L2_dl_out\03_calibration_OOS.png
+  -> inspeccion_v2\L2_dl_out\04_mu_mix_by_cell.png
+  -> inspeccion_v2\L2_dl_out\05_mu_hat_per_cell_IS.csv
+
+[4/5] mu_hat por celda IS (head):
+   lambda         m  mu_hat_SPX_bear  mu_hat_SPX_bull  mu_hat_CMC200_bear  mu_hat_CMC200_bull
++0.300000 +0.010000        +0.002053        +0.001747           +0.008654           +0.002832
++0.300000 +0.200000        +0.002053        +0.001747           +0.008654           +0.002832
++0.300000 +0.500000        +0.002053        +0.001747           +0.008654           +0.002832
++0.700000 +0.010000        +0.002053        +0.001747           +0.008654           +0.002832
++0.700000 +0.200000        +0.002053        +0.001747           +0.008654           +0.002832
++0.700000 +0.500000        +0.002053        +0.001747           +0.008654           +0.002832
++1.100000 +0.010000        +0.002053        +0.001747           +0.008654           +0.002832
++1.100000 +0.200000        +0.002053        +0.001747           +0.008654           +0.002832
++1.100000 +0.500000        +0.002053        +0.001747           +0.008654           +0.002832
++1.500000 +0.010000        +0.002053        +0.001747           +0.008654           +0.002832
++1.500000 +0.200000        +0.002053        +0.001747           +0.008654           +0.002832
++1.500000 +0.500000        +0.002053        +0.001747           +0.008654           +0.002832
++1.800000 +0.010000        +0.002053        +0.001747           +0.008654           +0.002832
++1.800000 +0.200000        +0.002053        +0.001747           +0.008654           +0.002832
++1.800000 +0.500000        +0.002053        +0.001747           +0.008654           +0.002832
+
+[5/5] Resumen IS:
+  SPX: std(15NNs)_avg_over_t = 0.1038  max(max-min)_over_t = 0.6000  mean p_bull = 0.475
+  CMC200: std(15NNs)_avg_over_t = 0.1016  max(max-min)_over_t = 0.6000  mean p_bull = 0.486
+
+  Accuracy direccional IS (resumen):
+asset          CMC200   SPX
+lambda   m                 
+0.3      0.01   0.515 0.476
+         0.2    0.505 0.563
+         0.5    0.495 0.505
+0.7      0.01   0.447 0.534
+         0.2    0.505 0.544
+         0.5    0.505 0.417
+1.1      0.01   0.544 0.466
+         0.2    0.534 0.456
+         0.5    0.544 0.495
+1.5      0.01   0.534 0.437
+         0.2    0.563 0.534
+         0.5    0.505 0.466
+1.8      0.01   0.466 0.534
+         0.2    0.534 0.505
+         0.5    0.534 0.544
+ensemble —      0.553 0.476
+
+  Accuracy direccional OOS (resumen):
+asset          CMC200   SPX
+lambda   m                 
+0.3      0.01   0.375 0.188
+         0.2    0.312 0.938
+         0.5    0.312 0.812
+0.7      0.01   0.562 0.375
+         0.2    0.375 0.125
+         0.5    0.625 0.562
+1.1      0.01   0.438 0.062
+         0.2    0.625 0.250
+         0.5    0.625 0.125
+1.5      0.01   0.688 0.250
+         0.2    0.438 0.125
+         0.5    0.625 0.125
+1.8      0.01   0.312 0.750
+         0.2    0.625 0.562
+         0.5    0.625 0.812
+ensemble —      0.375 0.250
+  -> inspeccion_v2\L2_dl_out\00_pbull_long_IS.csv
+
+  L2 listo.

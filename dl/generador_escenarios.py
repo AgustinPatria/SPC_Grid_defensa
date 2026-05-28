@@ -131,6 +131,136 @@ def reduce_to_representatives(
     return np.stack(reps, axis=0)                                            # (n_q, T, A)
 
 
+def reduce_by_portfolio_return(
+    scenarios: np.ndarray,
+    w_ref: np.ndarray,
+    n_quintiles: int = 5,
+    position: str = "median",
+) -> np.ndarray:
+    """Reduce N candidatos a n_quintiles representativos rankeando por
+    retorno acumulado de PORTAFOLIO bajo una politica de referencia w_ref.
+
+    Variante PDF-aligned del ranking por activo unico (`reduce_to_representatives`):
+    el "resumen economico" del PDF sec 2.5 deja de ser el retorno del activo
+    de referencia (ej. SPX) y pasa a ser el retorno del portafolio entero bajo
+    w_ref. Esto desliga la seleccion de escenarios del activo de mas peso en
+    el universo y la alinea con la FO.
+
+    scenarios:   (N, T, n_assets)
+    w_ref:       (n_assets,) — pesos del portafolio de referencia (sum=1, no
+                 necesariamente; el ranking es invariante a escala).
+    n_quintiles: numero de quintiles (default 5).
+    position:    "median" (default), "min" o "max" dentro de cada quintil.
+
+    return:      (n_quintiles, T, n_assets) — representativos compartidos.
+    """
+    if scenarios.ndim != 3:
+        raise ValueError(f"scenarios debe ser (N, T, A); recibi {scenarios.shape}")
+    N, _T, A = scenarios.shape
+    if N < n_quintiles:
+        raise ValueError(f"N={N} insuficiente para {n_quintiles} quintiles")
+    if w_ref.shape != (A,):
+        raise ValueError(f"w_ref shape {w_ref.shape} != (A={A},)")
+    if position not in {"median", "min", "max"}:
+        raise ValueError(f"position invalido: {position!r}")
+
+    # Retorno de portafolio por paso: r_port[n, t] = sum_i w_ref[i] * scenarios[n, t, i].
+    r_port = np.einsum("nti,i->nt", scenarios, w_ref.astype(np.float32))      # (N, T)
+    # Log-retorno acumulado (aditivo en el tiempo, estable numericamente).
+    # Clip evita log(<=0) en escenarios catastroficos sinteticos.
+    log_ret_cum = np.log(np.clip(1.0 + r_port, 1e-8, None)).sum(axis=1)        # (N,)
+    order = np.argsort(log_ret_cum)                                            # peor -> mejor
+
+    edges = np.linspace(0, N, n_quintiles + 1, dtype=int)
+    reps  = []
+    for k in range(n_quintiles):
+        lo, hi = edges[k], edges[k + 1]
+        bucket = order[lo:hi]
+        if   position == "median": idx = bucket[len(bucket) // 2]
+        elif position == "min":    idx = bucket[0]
+        else:                      idx = bucket[-1]
+        reps.append(scenarios[idx])
+
+    return np.stack(reps, axis=0)                                              # (n_q, T, A)
+
+
+def reduce_by_fo_outcome(
+    scenarios: np.ndarray,
+    w_ref: np.ndarray,
+    c_base: np.ndarray,
+    n_quintiles: int = 5,
+    position: str = "median",
+) -> np.ndarray:
+    """Reduce N candidatos rankeando por capital terminal bajo rebalanceo a w_ref
+    con costos de transaccion (FO-aligned, sin termino lambda*var).
+
+    Sigue la ec. 19 del PDF (`simulate_naive_rb`):
+      r_port[n, t]   = sum_i w_ref[i] * scenarios[n, t, i]
+      w_drift[n,t,i] = w_ref[i] * (1 + scenarios[n,t,i]) / (1 + r_port[n,t])
+      cost[n, t]     = sum_i c_base[i] * |w_ref[i] - w_drift[n, t, i]|
+      cap[n, t+1]    = cap[n, t] * (1 + r_port[n, t] - cost[n, t])
+
+    El agente de referencia mantiene w_ref via rebalanceo semanal, incurriendo
+    costos realistas. Esto refleja el "outcome economico" pedido por la FO en
+    el sentido de "retorno menos costos" — la parte que SI se puede medir sobre
+    una trayectoria realizada (el termino lambda*var requiere expectativas y
+    se omite del ranking).
+
+    scenarios:    (N, T, A) — candidatos del rollout
+    w_ref:        (A,)      — pesos de referencia (ej. w0 = 50/50)
+    c_base:       (A,)      — costos de transaccion por activo (config.C_BASE)
+    n_quintiles:  numero de quintiles (default 5)
+    position:     'median' / 'min' / 'max' dentro de cada quintil
+
+    return:       (n_quintiles, T, A) — representativos compartidos
+    """
+    if scenarios.ndim != 3:
+        raise ValueError(f"scenarios debe ser (N, T, A); recibi {scenarios.shape}")
+    N, _T, A = scenarios.shape
+    if N < n_quintiles:
+        raise ValueError(f"N={N} insuficiente para {n_quintiles} quintiles")
+    if w_ref.shape != (A,):
+        raise ValueError(f"w_ref shape {w_ref.shape} != (A={A},)")
+    if c_base.shape != (A,):
+        raise ValueError(f"c_base shape {c_base.shape} != (A={A},)")
+    if position not in {"median", "min", "max"}:
+        raise ValueError(f"position invalido: {position!r}")
+
+    w_ref32 = w_ref.astype(np.float32)
+    c32     = c_base.astype(np.float32)
+
+    # Retorno de portafolio por paso (con w_ref constante al inicio del periodo).
+    r_port = np.einsum("nti,i->nt", scenarios, w_ref32)                  # (N, T)
+
+    # Drift de los pesos al final del periodo (antes de rebalancear).
+    # Evita division por 0 cuando r_port = -1 (escenario catastrofico).
+    denom = np.clip(1.0 + r_port, 1e-8, None)                            # (N, T)
+    w_drift = (w_ref32[None, None, :] * (1.0 + scenarios)) / denom[:, :, None]  # (N, T, A)
+
+    # Costo de rebalancear de w_drift de vuelta a w_ref: c_i * |w_ref - w_drift|.
+    cost = np.einsum("nta,a->nt", np.abs(w_ref32[None, None, :] - w_drift), c32)  # (N, T)
+
+    # Capital terminal compuesto: cap_T = prod_t (1 + r_port - cost).
+    # log-cap aditivo para estabilidad numerica.
+    growth     = np.clip(1.0 + r_port - cost, 1e-8, None)                # (N, T)
+    log_cap    = np.log(growth).sum(axis=1)                              # (N,)
+    cap_terminal = np.exp(log_cap)                                       # (N,)
+
+    order = np.argsort(cap_terminal)                                     # peor -> mejor
+
+    edges = np.linspace(0, N, n_quintiles + 1, dtype=int)
+    reps  = []
+    for k in range(n_quintiles):
+        lo, hi = edges[k], edges[k + 1]
+        bucket = order[lo:hi]
+        if   position == "median": idx = bucket[len(bucket) // 2]
+        elif position == "min":    idx = bucket[0]
+        else:                      idx = bucket[-1]
+        reps.append(scenarios[idx])
+
+    return np.stack(reps, axis=0)                                         # (n_q, T, A)
+
+
 def generate_representative_scenarios(
     model: LoadedModel,
     initial_window: np.ndarray,

@@ -11,3 +11,6 @@ __pycache__/
 
 # Logs temporales de stdout en la raiz (los logs dentro de experimentos/*_out/ si se versionan)
 /run_*.log
+
+# Cache pickle de inspeccion_v2 (regenerables corriendo L4_optimizador.py / L5_regret.py)
+inspeccion_v2/_cache/

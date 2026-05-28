@@ -1,0 +1,6 @@
+metric,IS,OOS
+horizonte T,163,16
+candidates_min_cum_port,-90.22%,-48.38%
+candidates_median_cum_port,-30.68%,-2.94%
+candidates_max_cum_port,+513.53%,+70.54%
+reps_cum_port,"-72.71%, -51.52%, -30.60%, -4.27%, +60.38%","-27.43%, -14.47%, -2.94%, +8.10%, +25.27%"

@@ -78,9 +78,9 @@ DECILES: Tuple[float, ...] = (0.1, 0.3, 0.5, 0.7, 0.9)
 
 # Hiperparametros por defecto (reflejados en DLConfig).
 H_WINDOW:     int   = 60       # largo de la ventana del LSTM (PDF sec. 2.2 ejemplo). H=4 mejora pinball test pero hace que el rollout autoregresivo explote (SPX p_bull=100%, ver inspeccion/generador_escenarios/probe_H_intermedio.py).
-LSTM_HIDDEN:  int   = 16       # sweep_modelos: unico modelo con test_skill > 0 (+0.0137)
+LSTM_HIDDEN:  int   = 8        # Camino 1: reducido 16 -> 8 para bajar dispersion entre 15 NNs
 LSTM_LAYERS:  int   = 1        # sweep_modelos: 1 capa generaliza mejor que 2 (5x menos params)
-DROPOUT:      float = 0.1
+DROPOUT:      float = 0.3      # Camino 1: subido 0.1 -> 0.3 para regularizar y reducir varianza por seed
 LR:           float = 1e-3
 WEIGHT_DECAY: float = 1e-4
 EPOCHS:       int   = 300
@@ -185,8 +185,8 @@ class OptConfig:
 # IMPORTANTE: M_GRID debe ser estrictamente > 0. Con m=0 el termino c*(u+v)
 # del FO se anula y IPOPT puede devolver soluciones degeneradas (ver fix en
 # `solve_portfolio` que ahora acota u, v <= 1).
-LAMBDA_GRID: Tuple[float, ...] = (0.3, 0.9, 1.2, 1.5, 1.8)
-M_GRID:      Tuple[float, ...] = (0.1,  0.5, 1)
+LAMBDA_GRID: Tuple[float, ...] = (0.3, 0.7, 1.1, 1.5, 1.8)
+M_GRID:      Tuple[float, ...] = (0.01, 0.2, 0.5)
 
 
 @dataclass

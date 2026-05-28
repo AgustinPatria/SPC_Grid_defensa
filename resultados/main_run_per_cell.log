@@ -1,0 +1,208 @@
+======================================================================
+FASE 1 — ENTRENAMIENTO POR CELDA (15 NNs independientes)
+======================================================================
+  DLConfig: H=60  hidden=16  epochs=300  patience=15
+  Grilla: lambda x m = 5 x 3 = 15 celdas
+  Cache: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\models\per_cell
+----------------------------------------------------------------------
+  [ 1/15] cell lambda=0.30 m=0.10 seed=969489750
+  seed=969489750  best_valid=0.010967
+    trained best_valid=0.010967  -> decile_predictor_l0.30_m0.10.pt
+  [ 2/15] cell lambda=0.30 m=0.50 seed=1876655831
+  seed=1876655831  best_valid=0.013514
+    trained best_valid=0.013514  -> decile_predictor_l0.30_m0.50.pt
+  [ 3/15] cell lambda=0.30 m=1.00 seed=926339168
+  seed=926339168  best_valid=0.010940
+    trained best_valid=0.010940  -> decile_predictor_l0.30_m1.00.pt
+  [ 4/15] cell lambda=0.90 m=0.10 seed=180620173
+  seed=180620173  best_valid=0.011182
+    trained best_valid=0.011182  -> decile_predictor_l0.90_m0.10.pt
+  [ 5/15] cell lambda=0.90 m=0.50 seed=32849265
+  seed=32849265  best_valid=0.010350
+    trained best_valid=0.010350  -> decile_predictor_l0.90_m0.50.pt
+  [ 6/15] cell lambda=0.90 m=1.00 seed=1779355698
+  seed=1779355698  best_valid=0.011055
+    trained best_valid=0.011055  -> decile_predictor_l0.90_m1.00.pt
+  [ 7/15] cell lambda=1.20 m=0.10 seed=1920287436
+  seed=1920287436  best_valid=0.011071
+    trained best_valid=0.011071  -> decile_predictor_l1.20_m0.10.pt
+  [ 8/15] cell lambda=1.20 m=0.50 seed=387774515
+  seed=387774515  best_valid=0.011056
+    trained best_valid=0.011056  -> decile_predictor_l1.20_m0.50.pt
+  [ 9/15] cell lambda=1.20 m=1.00 seed=812929816
+  seed=812929816  best_valid=0.010442
+    trained best_valid=0.010442  -> decile_predictor_l1.20_m1.00.pt
+  [10/15] cell lambda=1.50 m=0.10 seed=1845177632
+  seed=1845177632  best_valid=0.010926
+    trained best_valid=0.010926  -> decile_predictor_l1.50_m0.10.pt
+  [11/15] cell lambda=1.50 m=0.50 seed=1402755660
+  seed=1402755660  best_valid=0.011107
+    trained best_valid=0.011107  -> decile_predictor_l1.50_m0.50.pt
+  [12/15] cell lambda=1.50 m=1.00 seed=1117649634
+  seed=1117649634  best_valid=0.010437
+    trained best_valid=0.010437  -> decile_predictor_l1.50_m1.00.pt
+  [13/15] cell lambda=1.80 m=0.10 seed=1032246918
+  seed=1032246918  best_valid=0.011674
+    trained best_valid=0.011674  -> decile_predictor_l1.80_m0.10.pt
+  [14/15] cell lambda=1.80 m=0.50 seed=1691472790
+  seed=1691472790  best_valid=0.010783
+    trained best_valid=0.010783  -> decile_predictor_l1.80_m0.50.pt
+  [15/15] cell lambda=1.80 m=1.00 seed=118688163
+  seed=118688163  best_valid=0.010571
+    trained best_valid=0.010571  -> decile_predictor_l1.80_m1.00.pt
+-> 15 NNs disponibles en memoria.
+
+======================================================================
+FASE 2 — CONTEXTO POR CELDA (mu_mix, sigma_mix con NN propia)
+======================================================================
+  mu_hat_source = 'p_hist' (lectura PDF literal sec 1.3)
+  p_method      = 'walking' (validado en HALLAZGOS sec 4)
+----------------------------------------------------------------------
+  g=(lam=0.30, m=0.10)  p_bull_mean(over assets)=0.471
+  g=(lam=0.30, m=0.50)  p_bull_mean(over assets)=0.513
+  g=(lam=0.30, m=1.00)  p_bull_mean(over assets)=0.419
+  g=(lam=0.90, m=0.10)  p_bull_mean(over assets)=0.422
+  g=(lam=0.90, m=0.50)  p_bull_mean(over assets)=0.458
+  g=(lam=0.90, m=1.00)  p_bull_mean(over assets)=0.518
+  g=(lam=1.20, m=0.10)  p_bull_mean(over assets)=0.552
+  g=(lam=1.20, m=0.50)  p_bull_mean(over assets)=0.453
+  g=(lam=1.20, m=1.00)  p_bull_mean(over assets)=0.492
+  g=(lam=1.50, m=0.10)  p_bull_mean(over assets)=0.467
+  g=(lam=1.50, m=0.50)  p_bull_mean(over assets)=0.491
+  g=(lam=1.50, m=1.00)  p_bull_mean(over assets)=0.494
+  g=(lam=1.80, m=0.10)  p_bull_mean(over assets)=0.486
+  g=(lam=1.80, m=0.50)  p_bull_mean(over assets)=0.558
+  g=(lam=1.80, m=1.00)  p_bull_mean(over assets)=0.475
+
+======================================================================
+FASE 3 — ESCENARIOS COMPARTIDOS (ensemble + ranking portafolio)
+======================================================================
+  Ensemble construido: 15 redes apiladas (promedio de logits)
+  w_ref (50/50): {'SPX': 0.5, 'CMC200': 0.5}
+  N candidates  = 1000
+  n_scenarios   = 5 (reducidos por retorno de portafolio)
+  scenarios.shape = (5, 163, 2)  (n_S, T, A)
+  ret port (w_ref) por escenario: ['-52.74%', '-19.76%', '+13.69%', '+56.37%', '+158.21%']
+
+======================================================================
+FASE 4 — REGRET GRID (un solve por celda; V sobre escenarios comp.)
+======================================================================
+  [ 1/15] lambda=0.30  m=0.1 ... z=0.7874  V=[$3,030 .. $23,735]
+  [ 2/15] lambda=0.30  m=0.5 ... z=0.7841  V=[$3,012 .. $23,790]
+  [ 3/15] lambda=0.30  m=1.0 ... z=0.8117  V=[$3,012 .. $23,790]
+  [ 4/15] lambda=0.90  m=0.1 ... z=0.5467  V=[$4,650 .. $23,902]
+  [ 5/15] lambda=0.90  m=0.5 ... z=0.5347  V=[$4,734 .. $24,057]
+  [ 6/15] lambda=0.90  m=1.0 ... z=0.4841  V=[$5,081 .. $23,986]
+  [ 7/15] lambda=1.20  m=0.1 ... z=0.4772  V=[$5,550 .. $23,800]
+  [ 8/15] lambda=1.20  m=0.5 ... z=0.4934  V=[$5,395 .. $23,846]
+  [ 9/15] lambda=1.20  m=1.0 ... z=0.5151  V=[$5,279 .. $23,955]
+  [10/15] lambda=1.50  m=0.1 ... z=0.5020  V=[$5,658 .. $23,658]
+  [11/15] lambda=1.50  m=0.5 ... z=0.4594  V=[$6,037 .. $23,469]
+  [12/15] lambda=1.50  m=1.0 ... z=0.5041  V=[$5,688 .. $23,844]
+  [13/15] lambda=1.80  m=0.1 ... z=0.4995  V=[$5,961 .. $23,861]
+  [14/15] lambda=1.80  m=0.5 ... z=0.4750  V=[$6,227 .. $23,671]
+  [15/15] lambda=1.80  m=1.0 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\main.py:158: UserWarning: g*_mean cae en frontera del grid (lambda=1.80). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\main.py:158: UserWarning: g*_worst cae en frontera del grid (lambda=1.80, m=1.00). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4827  V=[$6,065 .. $23,785]
+
+======================================================================
+RESULTADOS
+======================================================================
+
+--- V[g, s] — capital terminal por (lambda, m) y escenario ---
+s                  0         1          2          3          4
+lambda m                                                       
+0.3    0.1 $3,030.33 $5,859.27  $9,411.29 $13,447.04 $23,735.35
+       0.5 $3,011.59 $5,877.21  $9,489.99 $13,549.41 $23,789.62
+       1.0 $3,011.59 $5,877.21  $9,490.00 $13,549.42 $23,789.62
+0.9    0.1 $4,650.46 $7,954.28 $11,863.77 $15,238.52 $23,901.92
+       0.5 $4,733.86 $8,134.76 $12,062.57 $15,337.14 $24,057.43
+       1.0 $5,080.98 $8,459.57 $12,495.59 $15,967.73 $23,985.57
+1.2    0.1 $5,550.47 $9,025.99 $13,089.82 $16,267.26 $23,799.62
+       0.5 $5,395.08 $8,982.90 $13,063.11 $16,002.20 $23,846.23
+       1.0 $5,278.86 $8,737.54 $12,776.77 $15,985.14 $23,955.03
+1.5    0.1 $5,657.86 $9,164.80 $13,227.92 $16,106.70 $23,657.55
+       0.5 $6,037.40 $9,526.74 $13,545.97 $16,399.66 $23,469.33
+       1.0 $5,687.95 $9,196.69 $13,278.37 $16,311.44 $23,844.39
+1.8    0.1 $5,961.08 $9,536.46 $13,661.66 $16,409.98 $23,860.61
+       0.5 $6,226.64 $9,731.10 $13,837.34 $16,828.24 $23,670.73
+       1.0 $6,065.13 $9,660.52 $13,753.19 $16,472.70 $23,784.71
+
+--- R[g, s] = V_best_s - V[g, s] ---
+s                  0         1         2         3       4
+lambda m                                                  
+0.3    0.1 $3,196.31 $3,871.83 $4,426.05 $3,381.20 $322.08
+       0.5 $3,215.04 $3,853.90 $4,347.34 $3,278.83 $267.80
+       1.0 $3,215.04 $3,853.89 $4,347.34 $3,278.82 $267.81
+0.9    0.1 $1,576.18 $1,776.82 $1,973.57 $1,589.72 $155.51
+       0.5 $1,492.77 $1,596.34 $1,774.77 $1,491.10   $0.00
+       1.0 $1,145.65 $1,271.53 $1,341.75   $860.51  $71.85
+1.2    0.1   $676.17   $705.11   $747.51   $560.98 $257.81
+       0.5   $831.56   $748.20   $774.22   $826.04 $211.20
+       1.0   $947.78   $993.56 $1,060.57   $843.10 $102.40
+1.5    0.1   $568.78   $566.30   $609.42   $721.54 $399.88
+       0.5   $189.24   $204.36   $291.37   $428.58 $588.10
+       1.0   $538.69   $534.41   $558.97   $516.80 $213.04
+1.8    0.1   $265.55   $194.64   $175.68   $418.26 $196.82
+       0.5     $0.00     $0.00     $0.00     $0.00 $386.70
+       1.0   $161.51    $70.58    $84.15   $355.54 $272.72
+
+--- Resumen de regret por g ---
+            mean_regret  worst_regret
+lambda m                             
+0.3    0.1    $3,039.49     $4,426.05
+       0.5    $2,992.58     $4,347.34
+       1.0    $2,992.58     $4,347.34
+0.9    0.1    $1,414.36     $1,973.57
+       0.5    $1,271.00     $1,774.77
+       1.0      $938.26     $1,341.75
+1.2    0.1      $589.52       $747.51
+       0.5      $678.24       $831.56
+       1.0      $789.48     $1,060.57
+1.5    0.1      $573.18       $721.54
+       0.5      $340.33       $588.10
+       1.0      $472.38       $558.97
+1.8    0.1      $250.19       $418.26
+       0.5       $77.34       $386.70
+       1.0      $188.90       $355.54
+
+--- Seleccion de g* ---
+  g*_mean  (ec. 23): lambda=1.80  m=0.5  mean_regret=$77.34
+      V: mean=$   14,058.81  worst=$    6,226.64  best=$   23,670.73  (capital inicial=$10,000.00)
+      retorno promedio sobre escenarios = +40.59%
+  g*_worst (ec. 24): lambda=1.80  m=1.0  worst_regret=$355.54
+      V: mean=$   13,947.25  worst=$    6,065.13  best=$   23,784.71  (capital inicial=$10,000.00)
+      retorno en el peor escenario     = -39.35%
+
+  V_df (long)           : C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\regret_grid_results.csv
+  Tabla de regret       : C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\regret_table.csv
+  Resumen por g         : C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\regret_summary.csv
+
+----------------------------------------------------------------------
+DIAGNOSTICO — dispersion de p_dl(t) entre las 15 NNs por celda
+----------------------------------------------------------------------
+  SPX      p_bull std promedio (sobre t)=0.1075  max std=0.1707  max(max-min)=0.6000
+  CMC200   p_bull std promedio (sobre t)=0.0954  max std=0.1818  max(max-min)=0.6000
+  -> C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\pdl_dispersion.csv
+  Grafico guardado en: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\regret_capital_curves.png
+
+--- Backtest historico (politica aplicada a r_hist) ---
+  Capital inicial = $10,000.00   horizonte = t1..t163 (163 periodos)
+  politica                                       cap_final   ret_acum       inc_cap
+  --------------------------------------------------------------------------------
+  OPT (lambda=1.00, m=1.0)                    $  14,522.32   +45.22%  $  +4,522.32
+  Regret-Grid g*_mean (lambda=1.80, m=0.5)    $  13,105.06   +31.05%  $  +3,105.06
+  Naive 50/50 rebalanceo                      $  12,091.59   +20.92%  $  +2,091.59
+  Naive 50/50 buy & hold                      $  12,258.46   +22.58%  $  +2,258.46
+
+  Nota: el ret_acum de Regret-Grid sobre r_hist NO es comparable
+        con el +40.59% promedio sobre los 5 escenarios DL del bloque anterior — uno es backtest
+        sobre la trayectoria observada, el otro es promedio sobre las
+        trayectorias forecast del LSTM.
+  Grafico guardado en: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\resultados\evolucion_capital.png
+
+======================================================================
+Pipeline per-cell completo.
+======================================================================

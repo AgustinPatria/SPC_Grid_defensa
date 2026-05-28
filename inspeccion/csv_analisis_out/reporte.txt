@@ -1,0 +1,276 @@
+
+==============================================================================
+0) INTEGRIDAD DE DATOS
+==============================================================================
+
+  [ret_SPX]
+    filas=163  columnas=['t', 'ret_semanal_spx']
+    dtypes={'t': 'int64', 'ret_semanal_spx': 'float64'}
+    NaN por columna={'t': np.int64(0), 'ret_semanal_spx': np.int64(0)}
+    valores inf=0   filas duplicadas=0
+    t: min=1 max=163 contiguo_sin_saltos=True
+    t duplicados=0
+
+  [ret_CMC200]
+    filas=163  columnas=['t', 'ret_semanal_cmc200']
+    dtypes={'t': 'int64', 'ret_semanal_cmc200': 'float64'}
+    NaN por columna={'t': np.int64(0), 'ret_semanal_cmc200': np.int64(0)}
+    valores inf=0   filas duplicadas=0
+    t: min=1 max=163 contiguo_sin_saltos=True
+    t duplicados=0
+
+  [prob_SPX]
+    filas=163  columnas=['t', 'bear', 'bull']
+    dtypes={'t': 'int64', 'bear': 'float64', 'bull': 'float64'}
+    NaN por columna={'t': np.int64(0), 'bear': np.int64(0), 'bull': np.int64(0)}
+    valores inf=0   filas duplicadas=0
+    t: min=1 max=163 contiguo_sin_saltos=True
+    t duplicados=0
+
+  [prob_CMC200]
+    filas=163  columnas=['t', 'bear', 'bull']
+    dtypes={'t': 'int64', 'bear': 'float64', 'bull': 'float64'}
+    NaN por columna={'t': np.int64(0), 'bear': np.int64(0), 'bull': np.int64(0)}
+    valores inf=0   filas duplicadas=0
+    t: min=1 max=163 contiguo_sin_saltos=True
+    t duplicados=0
+
+------------------------------------------------------------------------------
+Alineacion entre los 4 CSV
+------------------------------------------------------------------------------
+  todos los CSV cubren el mismo conjunto de t : True
+  largo comun de la serie                     : 163 semanas
+
+==============================================================================
+1) RETORNOS - ESTADISTICA DESCRIPTIVA
+==============================================================================
+
+  [SPX]  n=163 semanas
+    media semanal   = +0.1871%    mediana = +0.4140%
+    std semanal     = +2.3201%
+    min / max       = -5.9687% / +6.3767%
+    p1/p5/p95/p99   = -5.4386% / -3.3993% / +3.8637% / +6.0777%
+    skew            = -0.029     kurtosis(exc) = +0.366
+    semanas r>=0    = 55.8%
+    media anualiz.  = +9.7298%   vol anualiz. = +16.7307%
+    Sharpe anualiz. = +0.582
+    retorno acumul. = +29.8500%   (USD 1 -> USD 1.299)
+    max drawdown    = -26.4171%
+    Jarque-Bera     = 0.9  p=0.6278  -> compatible con normal
+
+  [CMC200]  n=163 semanas
+    media semanal   = +0.4196%    mediana = +0.3627%
+    std semanal     = +9.7858%
+    min / max       = -40.9219% / +34.9277%
+    p1/p5/p95/p99   = -28.6495% / -13.8910% / +14.1185% / +23.2351%
+    skew            = -0.561     kurtosis(exc) = +2.987
+    semanas r>=0    = 53.4%
+    media anualiz.  = +21.8191%   vol anualiz. = +70.5662%
+    Sharpe anualiz. = +0.309
+    retorno acumul. = -13.1841%   (USD 1 -> USD 0.868)
+    max drawdown    = -84.0492%
+    Jarque-Bera     = 69.1  p=9.767e-16  -> NO normal (colas gruesas)
+
+==============================================================================
+2) RETORNOS - ESTRUCTURA TEMPORAL (premisa del LSTM)
+==============================================================================
+
+------------------------------------------------------------------------------
+2a) Autocorrelacion del retorno r_t  (¿predice r el proprio r pasado?)
+------------------------------------------------------------------------------
+   lag           SPX        CMC200
+     1       -0.0739       -0.0150
+     2       +0.0127       -0.0544
+     3       -0.0119       -0.0326
+     4       +0.0513       +0.1632
+     5       -0.0943       +0.0821
+     6       -0.0791       -0.0416
+     7       -0.0165       -0.0755
+     8       -0.1496       +0.0533
+     9       +0.0493       +0.0435
+    10       -0.0223       -0.1184
+  SPX: banda 95% = +-0.1535  -> lags significativos: ninguno
+  CMC200: banda 95% = +-0.1535  -> lags significativos: [4]
+
+------------------------------------------------------------------------------
+2b) Test Ljung-Box  (H0: retornos son ruido blanco, sin autocorrelacion)
+------------------------------------------------------------------------------
+  SPX      lags=5   stat=    2.92  p=0.7128  -> no rechaza (ruido blanco)
+  SPX      lags=10  stat=    8.43  p=0.587  -> no rechaza (ruido blanco)
+  CMC200   lags=5   stat=    6.37  p=0.2723  -> no rechaza (ruido blanco)
+  CMC200   lags=10  stat=   10.93  p=0.363  -> no rechaza (ruido blanco)
+
+------------------------------------------------------------------------------
+2c) Predictibilidad: R2 de un AR(4)  (regresion r_t ~ r_{t-1..t-4})
+------------------------------------------------------------------------------
+  SPX      R2(AR4) = +0.0064   -> practicamente cero
+  CMC200   R2(AR4) = +0.0353   -> practicamente cero
+  (un R2 ~ 0 implica que el retorno pasado casi no predice el futuro)
+
+------------------------------------------------------------------------------
+2d) Clustering de volatilidad: autocorrelacion de r^2
+------------------------------------------------------------------------------
+   lag           SPX        CMC200
+     1       +0.2484       -0.0292
+     2       +0.2005       +0.0554
+     3       +0.0931       +0.0346
+     4       +0.1957       +0.0447
+     5       +0.1176       +0.1856
+     6       +0.1365       -0.0169
+     7       +0.0803       +0.0161
+     8       +0.1716       +0.0127
+     9       +0.0990       +0.0424
+    10       +0.0923       +0.0840
+  SPX      Ljung-Box(r^2, lag10) p=1.787e-05  -> SI hay clustering de volatilidad
+  CMC200   Ljung-Box(r^2, lag10) p=0.5572  -> sin clustering detectable
+
+------------------------------------------------------------------------------
+2e) Estacionariedad: test ADF  (H0: serie NO estacionaria)
+------------------------------------------------------------------------------
+  SPX      ADF stat= -13.632  p=1.713e-25  -> estacionaria
+  CMC200   ADF stat= -13.336  p=6.052e-25  -> estacionaria
+
+------------------------------------------------------------------------------
+2f) No-estacionariedad por bloques: media/std en 3 tercios de la serie
+------------------------------------------------------------------------------
+  [SPX]
+    tercio 1 (n= 55): media=+0.2868%  std=+1.8416%  cumret=+15.9934%
+    tercio 2 (n= 54): media=-0.1135%  std=+3.0943%  cumret=-8.2974%
+    tercio 3 (n= 54): media=+0.3861%  std=+1.8112%  cumret=+22.0752%
+  [CMC200]
+    tercio 1 (n= 55): media=+0.8482%  std=+12.6175%  cumret=+1.0292%
+    tercio 2 (n= 54): media=-0.8688%  std=+8.9932%  cumret=-51.0952%
+    tercio 3 (n= 54): media=+1.2715%  std=+6.8557%  cumret=+75.7116%
+
+==============================================================================
+3) RETORNOS - RELACION CRUZADA SPX vs CMC200
+==============================================================================
+
+  Correlacion contemporanea  corr(r_SPX, r_CMC)   = +0.3107
+  Correlacion de magnitudes  corr(|r_SPX|,|r_CMC|) = +0.1267
+
+------------------------------------------------------------------------------
+3a) Cross-correlacion con rezagos  (¿un activo adelanta al otro?)
+------------------------------------------------------------------------------
+    lag      corr(r_SPX_t, r_CMC_t+lag)
+     -5                         +0.0158
+     -4                         +0.1235
+     -3                         -0.0076
+     -2                         +0.0476
+     -1                         +0.0323
+      0                         +0.3107  <- contemporaneo
+      1                         +0.1456
+      2                         +0.0231
+      3                         -0.1391
+      4                         +0.0656
+      5                         -0.0328
+  (lag>0: SPX adelanta a CMC ; lag<0: CMC adelanta a SPX)
+
+------------------------------------------------------------------------------
+3b) Correlacion movil (ventana 26 sem) - ¿es estable?
+------------------------------------------------------------------------------
+  corr movil: min=-0.232  max=+0.639  media=+0.276  std=0.231
+
+==============================================================================
+4) PROBABILIDADES DE REGIMEN - DESCRIPCION
+==============================================================================
+
+  [SPX]
+    bear+bull=1 ? error maximo = 0.00e+00
+    p_bull: min=0.0558  max=0.9450  media=0.5948  mediana=0.7676  std=0.3383
+    distribucion de p_bull por tramo:
+      [0.0,0.1)   20  ####################
+      [0.1,0.2)   19  ###################
+      [0.2,0.3)    9  #########
+      [0.3,0.4)    8  ########
+      [0.4,0.5)    6  ######
+      [0.5,0.6)    6  ######
+      [0.6,0.7)    7  #######
+      [0.7,0.8)   11  ###########
+      [0.8,0.9)   35  ###################################
+      [0.9,1.0)   42  ##########################################
+    semanas p_bull>0.5 = 101/163
+    p_bull extremo (<0.1 o >0.9) = 62/163   p_bull ambiguo (0.4-0.6) = 12/163
+
+  [CMC200]
+    bear+bull=1 ? error maximo = 0.00e+00
+    p_bull: min=0.1144  max=0.8832  media=0.7658  mediana=0.8326  std=0.1593
+    distribucion de p_bull por tramo:
+      [0.0,0.1)    0  
+      [0.1,0.2)    4  ####
+      [0.2,0.3)    2  ##
+      [0.3,0.4)    1  #
+      [0.4,0.5)    7  #######
+      [0.5,0.6)    9  #########
+      [0.6,0.7)    9  #########
+      [0.7,0.8)   27  ###########################
+      [0.8,0.9)  104  ########################################################################################################
+      [0.9,1.0)    0  
+    semanas p_bull>0.5 = 149/163
+    p_bull extremo (<0.1 o >0.9) = 0/163   p_bull ambiguo (0.4-0.6) = 16/163
+
+==============================================================================
+5) PROBABILIDADES - ¿QUE REGIMEN REPRESENTAN?
+==============================================================================
+
+------------------------------------------------------------------------------
+5a) ¿El regimen corresponde al SIGNO del retorno?
+------------------------------------------------------------------------------
+  activo    corr(p_bull,r)   accuracy>0.5    r|CSVbull    r|CSVbear
+  SPX              -0.0094          52.1%     +0.1285%     +0.2827%
+  CMC200           -0.0674          55.8%     +0.4397%     +0.2057%
+  -> si corr ~ 0 y accuracy ~ 50%, el regimen NO es el signo del retorno
+
+------------------------------------------------------------------------------
+5b) ¿El regimen corresponde a la VOLATILIDAD?
+------------------------------------------------------------------------------
+  activo    corr(p_bear,|r|)  corr(p_bear,r^2)  corr(p_bear,vol13)
+  SPX                +0.2923           +0.3272             +0.4695
+  CMC200             +0.0577           +0.0257             +0.4153
+  -> si p_bear correlaciona con |r|/vol, 'bear' = regimen de ALTA VOLATILIDAD
+     (eso explicaria que mu(bear) no sea necesariamente negativo)
+
+------------------------------------------------------------------------------
+5c) ¿El regimen ADELANTA al retorno? corr(p_bull_t, r_t+1)
+------------------------------------------------------------------------------
+  SPX      corr(p_bull_t, r_t+1) = +0.0386  -> sin poder predictivo
+  CMC200   corr(p_bull_t, r_t+1) = -0.1014  -> sin poder predictivo
+
+------------------------------------------------------------------------------
+5d) Persistencia del regimen  (un regimen real es persistente en t)
+------------------------------------------------------------------------------
+  SPX      ACF(p_bull) lag1=+0.243 lag2=+0.186 lag3=+0.131
+           cambios de regimen (cruces de 0.5) = 60/162 transiciones  -> MUY inestable
+  CMC200   ACF(p_bull) lag1=+0.289 lag2=+0.242 lag3=+0.173
+           cambios de regimen (cruces de 0.5) = 24/162 transiciones  -> persistente
+
+------------------------------------------------------------------------------
+5e) Calibracion: cuando p_bull=X, ¿ocurre r>=0 una fraccion X de las veces?
+------------------------------------------------------------------------------
+  [SPX]  tramo p_bull        n  p_bull medio   frac r>=0 real
+          [0.0,0.2)         39         0.108            0.538
+          [0.2,0.4)         17         0.289            0.529
+          [0.4,0.6)         12         0.494            0.667
+          [0.6,0.8)         18         0.716            0.500
+          [0.8,1.0)         77         0.896            0.571
+  [CMC200]  tramo p_bull        n  p_bull medio   frac r>=0 real
+          [0.0,0.2)          4         0.154            0.000
+          [0.2,0.4)          3         0.317            0.667
+          [0.4,0.6)         16         0.504            0.688
+          [0.6,0.8)         36         0.744            0.639
+          [0.8,1.0)        104         0.850            0.490
+  -> si 'p_bull medio' y 'frac r>=0 real' no se parecen, esta MAL calibrado
+
+==============================================================================
+6) PROBABILIDADES - RELACION CRUZADA SPX vs CMC200
+==============================================================================
+
+  corr(p_bull_SPX, p_bull_CMC) = -0.0352
+  semanas con AMBOS en bull   = 91/163
+  semanas con AMBOS en bear   = 4/163
+  semanas en regimen OPUESTO  = 68/163
+
+==============================================================================
+FIN DEL ANALISIS
+==============================================================================
+  Reporte y figuras en: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\csv_analisis_out

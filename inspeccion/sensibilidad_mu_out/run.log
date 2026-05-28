@@ -1,0 +1,237 @@
+==============================================================================
+ANALISIS DE SENSIBILIDAD DE mu_hat
+==============================================================================
+
+[1/4] Cargando NNs por celda (cache)...
+  [ 1/15] cell lambda=0.30 m=0.01 seed=5137475
+    cache hit -> decile_predictor_l0.30_m0.01.pt
+  [ 2/15] cell lambda=0.30 m=0.20 seed=365123474
+    cache hit -> decile_predictor_l0.30_m0.20.pt
+  [ 3/15] cell lambda=0.30 m=0.50 seed=1876655831
+    cache hit -> decile_predictor_l0.30_m0.50.pt
+  [ 4/15] cell lambda=0.70 m=0.01 seed=1153377893
+    cache hit -> decile_predictor_l0.70_m0.01.pt
+  [ 5/15] cell lambda=0.70 m=0.20 seed=956435689
+    cache hit -> decile_predictor_l0.70_m0.20.pt
+  [ 6/15] cell lambda=0.70 m=0.50 seed=830161467
+    cache hit -> decile_predictor_l0.70_m0.50.pt
+  [ 7/15] cell lambda=1.10 m=0.01 seed=56414385
+    cache hit -> decile_predictor_l1.10_m0.01.pt
+  [ 8/15] cell lambda=1.10 m=0.20 seed=13789192
+    cache hit -> decile_predictor_l1.10_m0.20.pt
+  [ 9/15] cell lambda=1.10 m=0.50 seed=1764711671
+    cache hit -> decile_predictor_l1.10_m0.50.pt
+  [10/15] cell lambda=1.50 m=0.01 seed=1981259275
+    cache hit -> decile_predictor_l1.50_m0.01.pt
+  [11/15] cell lambda=1.50 m=0.20 seed=1369181433
+    cache hit -> decile_predictor_l1.50_m0.20.pt
+  [12/15] cell lambda=1.50 m=0.50 seed=1402755660
+    cache hit -> decile_predictor_l1.50_m0.50.pt
+  [13/15] cell lambda=1.80 m=0.01 seed=400561167
+    cache hit -> decile_predictor_l1.80_m0.01.pt
+  [14/15] cell lambda=1.80 m=0.20 seed=681718436
+    cache hit -> decile_predictor_l1.80_m0.20.pt
+  [15/15] cell lambda=1.80 m=0.50 seed=1691472790
+    cache hit -> decile_predictor_l1.80_m0.50.pt
+
+[2/4] Construyendo contextos baseline (mu_hat con p_hist)...
+
+[3/4] Construyendo escenarios compartidos (FO-aligned)...
+  scenarios.shape = (5, 163, 2)
+
+[4/4] Barriendo 8 gaps de mu_hat...
+      r_mean historico: SPX=+0.1871%/sem  CMC=+0.4196%/sem
+
+  --- gap = +0.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=0.4856  V=[$2,828 .. $25,027]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.4857  V=[$2,848 .. $25,078]
+  [ 3/15] lambda=0.30  m=0.5 ... z=0.4806  V=[$2,934 .. $24,672]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.4084  V=[$4,056 .. $20,537]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.4066  V=[$4,037 .. $20,764]
+  [ 6/15] lambda=0.70  m=0.5 ... z=0.4144  V=[$4,080 .. $20,626]
+  [ 7/15] lambda=1.10  m=0.0 ... z=0.3973  V=[$4,416 .. $19,347]
+  [ 8/15] lambda=1.10  m=0.2 ... z=0.4108  V=[$4,462 .. $19,403]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.4018  V=[$4,422 .. $19,490]
+  [10/15] lambda=1.50  m=0.0 ... z=0.4103  V=[$4,602 .. $18,934]
+  [11/15] lambda=1.50  m=0.2 ... z=0.4064  V=[$4,632 .. $18,813]
+  [12/15] lambda=1.50  m=0.5 ... z=0.4098  V=[$4,601 .. $18,878]
+  [13/15] lambda=1.80  m=0.0 ... z=0.4375  V=[$4,734 .. $18,549]
+  [14/15] lambda=1.80  m=0.2 ... z=0.4279  V=[$4,684 .. $18,662]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.50). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4374  V=[$4,724 .. $18,588]
+    g*_mean=(0.30, 0.20)  V_mean_dl=$10,739  backtest=-9.00%
+
+  --- gap = +0.50%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=0.4201  V=[$2,871 .. $26,896]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.4206  V=[$2,806 .. $22,523]
+  [ 3/15] lambda=0.30  m=0.5 ... z=0.4672  V=[$3,731 .. $22,149]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.3683  V=[$3,896 .. $19,264]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.3627  V=[$3,591 .. $21,912]
+  [ 6/15] lambda=0.70  m=0.5 ... z=0.4770  V=[$4,084 .. $20,782]
+  [ 7/15] lambda=1.10  m=0.0 ... z=0.3176  V=[$4,239 .. $18,854]
+  [ 8/15] lambda=1.10  m=0.2 ... z=0.4391  V=[$4,833 .. $18,916]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.3602  V=[$4,149 .. $20,089]
+  [10/15] lambda=1.50  m=0.0 ... z=0.3653  V=[$4,399 .. $19,556]
+  [11/15] lambda=1.50  m=0.2 ... z=0.3402  V=[$4,634 .. $18,606]
+  [12/15] lambda=1.50  m=0.5 ... z=0.3700  V=[$4,409 .. $19,241]
+  [13/15] lambda=1.80  m=0.0 ... z=0.4840  V=[$4,873 .. $18,085]
+  [14/15] lambda=1.80  m=0.2 ... z=0.4304  V=[$4,586 .. $18,782]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.4908  V=[$4,757 .. $18,576]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$10,810  backtest=-21.67%
+
+  --- gap = +1.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=0.3618  V=[$2,883 .. $28,866]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.3751  V=[$2,564 .. $18,166]
+  [ 3/15] lambda=0.30  m=0.5 ... z=0.4896  V=[$4,721 .. $19,027]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.3384  V=[$3,742 .. $18,236]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.3351  V=[$3,102 .. $23,154]
+  [ 6/15] lambda=0.70  m=0.5 ... z=0.5407  V=[$4,049 .. $21,280]
+  [ 7/15] lambda=1.10  m=0.0 ... z=0.2429  V=[$4,064 .. $18,346]
+  [ 8/15] lambda=1.10  m=0.2 ... z=0.4793  V=[$5,230 .. $18,489]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.3281  V=[$3,892 .. $20,682]
+  [10/15] lambda=1.50  m=0.0 ... z=0.3285  V=[$4,201 .. $20,185]
+  [11/15] lambda=1.50  m=0.2 ... z=0.2761  V=[$4,650 .. $18,464]
+  [12/15] lambda=1.50  m=0.5 ... z=0.3375  V=[$4,220 .. $19,446]
+  [13/15] lambda=1.80  m=0.0 ... z=0.5395  V=[$5,010 .. $17,618]
+  [14/15] lambda=1.80  m=0.2 ... z=0.4398  V=[$4,502 .. $19,073]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_worst cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.5458  V=[$4,736 .. $18,430]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$10,953  backtest=-36.60%
+
+  --- gap = +2.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=0.2564  V=[$2,876 .. $29,580]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.3272  V=[$2,512 .. $15,856]
+  [ 3/15] lambda=0.30  m=0.5 ... z=0.6193  V=[$4,865 .. $15,175]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.3037  V=[$3,606 .. $16,743]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.3272  V=[$2,448 .. $25,933]
+  [ 6/15] lambda=0.70  m=0.5 ... z=0.6760  V=[$4,046 .. $22,240]
+  [ 7/15] lambda=1.10  m=0.0 ... z=0.1072  V=[$3,735 .. $17,774]
+  [ 8/15] lambda=1.10  m=0.2 ... z=0.5856  V=[$5,266 .. $17,817]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.2948  V=[$3,469 .. $22,030]
+  [10/15] lambda=1.50  m=0.0 ... z=0.2795  V=[$3,831 .. $21,566]
+  [11/15] lambda=1.50  m=0.2 ... z=0.1547  V=[$4,648 .. $18,303]
+  [12/15] lambda=1.50  m=0.5 ... z=0.2974  V=[$3,877 .. $19,994]
+  [13/15] lambda=1.80  m=0.0 ... z=0.6606  V=[$4,945 .. $17,450]
+  [14/15] lambda=1.80  m=0.2 ... z=0.4792  V=[$4,240 .. $19,449]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.6632  V=[$4,722 .. $18,141]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$11,001  backtest=-41.55%
+
+  --- gap = +4.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=0.0464  V=[$2,876 .. $29,579]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.2452  V=[$2,526 .. $15,882]
+  [ 3/15] lambda=0.30  m=0.5 ... z=0.9289  V=[$4,839 .. $13,467]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.2577  V=[$3,606 .. $16,745]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.3676  V=[$2,365 .. $27,156]
+  [ 6/15] lambda=0.70  m=0.5 ... z=0.9763  V=[$4,078 .. $23,632]
+  [ 7/15] lambda=1.10  m=0.0 ... z=-0.1339  V=[$3,436 .. $17,751]
+  [ 8/15] lambda=1.10  m=0.2 ... z=0.8473  V=[$4,324 .. $17,475]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.3663  V=[$2,784 .. $21,700]
+  [10/15] lambda=1.50  m=0.0 ... z=0.2778  V=[$3,149 .. $24,029]
+  [11/15] lambda=1.50  m=0.2 ... z=-0.0695  V=[$4,659 .. $18,274]
+  [12/15] lambda=1.50  m=0.5 ... z=0.3232  V=[$3,253 .. $20,007]
+  [13/15] lambda=1.80  m=0.0 ... z=0.9102  V=[$4,831 .. $17,131]
+  [14/15] lambda=1.80  m=0.2 ... z=0.6310  V=[$3,625 .. $20,527]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=0.9192  V=[$4,388 .. $17,830]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$11,000  backtest=-41.55%
+
+  --- gap = +8.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=-0.3736  V=[$2,876 .. $29,579]
+  [ 2/15] lambda=0.30  m=0.2 ... z=0.0812  V=[$2,526 .. $15,882]
+  [ 3/15] lambda=0.30  m=0.5 ... z=1.5569  V=[$4,839 .. $13,467]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.1657  V=[$3,606 .. $16,745]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.4516  V=[$2,365 .. $27,156]
+  [ 6/15] lambda=0.70  m=0.5 ... z=1.5963  V=[$4,065 .. $23,582]
+  [ 7/15] lambda=1.10  m=0.0 ... z=-0.5939  V=[$3,436 .. $17,751]
+  [ 8/15] lambda=1.10  m=0.2 ... z=1.4351  V=[$4,249 .. $17,537]
+  [ 9/15] lambda=1.10  m=0.5 ... z=0.7076  V=[$2,640 .. $20,108]
+  [10/15] lambda=1.50  m=0.0 ... z=0.5513  V=[$2,704 .. $25,694]
+  [11/15] lambda=1.50  m=0.2 ... z=-0.4612  V=[$4,659 .. $17,970]
+  [12/15] lambda=1.50  m=0.5 ... z=0.7069  V=[$2,829 .. $19,541]
+  [13/15] lambda=1.80  m=0.0 ... z=1.4283  V=[$4,713 .. $16,664]
+  [14/15] lambda=1.80  m=0.2 ... z=1.2065  V=[$2,841 .. $21,610]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=1.4974  V=[$4,022 .. $17,043]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$11,000  backtest=-41.55%
+
+  --- gap = +12.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=-0.7936  V=[$2,876 .. $29,579]
+  [ 2/15] lambda=0.30  m=0.2 ... z=-0.0828  V=[$2,526 .. $15,883]
+  [ 3/15] lambda=0.30  m=0.5 ... z=2.1849  V=[$4,839 .. $13,467]
+  [ 4/15] lambda=0.70  m=0.0 ... z=0.0737  V=[$3,606 .. $16,745]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.5356  V=[$2,365 .. $27,156]
+  [ 6/15] lambda=0.70  m=0.5 ... z=2.2163  V=[$4,065 .. $23,584]
+  [ 7/15] lambda=1.10  m=0.0 ... z=-1.0539  V=[$3,436 .. $17,751]
+  [ 8/15] lambda=1.10  m=0.2 ... z=2.0231  V=[$4,249 .. $17,537]
+  [ 9/15] lambda=1.10  m=0.5 ... z=1.0556  V=[$2,640 .. $20,108]
+  [10/15] lambda=1.50  m=0.0 ... z=0.8593  V=[$2,704 .. $25,694]
+  [11/15] lambda=1.50  m=0.2 ... z=-0.8412  V=[$4,659 .. $17,970]
+  [12/15] lambda=1.50  m=0.5 ... z=1.1663  V=[$2,858 .. $19,432]
+  [13/15] lambda=1.80  m=0.0 ... z=1.9523  V=[$4,713 .. $16,664]
+  [14/15] lambda=1.80  m=0.2 ... z=1.8905  V=[$2,841 .. $21,611]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=2.1166  V=[$3,948 .. $17,064]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$11,000  backtest=-41.55%
+
+  --- gap = +16.00%/sem ---
+  [ 1/15] lambda=0.30  m=0.0 ... z=-1.2136  V=[$2,876 .. $29,579]
+  [ 2/15] lambda=0.30  m=0.2 ... z=-0.2468  V=[$2,526 .. $15,882]
+  [ 3/15] lambda=0.30  m=0.5 ... z=2.8129  V=[$4,839 .. $13,467]
+  [ 4/15] lambda=0.70  m=0.0 ... z=-0.0183  V=[$3,606 .. $16,744]
+  [ 5/15] lambda=0.70  m=0.2 ... z=0.6196  V=[$2,365 .. $27,156]
+  [ 6/15] lambda=0.70  m=0.5 ... z=2.8363  V=[$4,065 .. $23,583]
+  [ 7/15] lambda=1.10  m=0.0 ... z=-1.5139  V=[$3,436 .. $17,751]
+  [ 8/15] lambda=1.10  m=0.2 ... z=2.6111  V=[$4,249 .. $17,537]
+  [ 9/15] lambda=1.10  m=0.5 ... z=1.4036  V=[$2,641 .. $20,107]
+  [10/15] lambda=1.50  m=0.0 ... z=1.1673  V=[$2,704 .. $25,694]
+  [11/15] lambda=1.50  m=0.2 ... z=-1.2212  V=[$4,659 .. $17,970]
+  [12/15] lambda=1.50  m=0.5 ... z=1.6263  V=[$2,858 .. $19,432]
+  [13/15] lambda=1.80  m=0.0 ... z=2.4763  V=[$4,713 .. $16,664]
+  [14/15] lambda=1.80  m=0.2 ... z=2.5745  V=[$2,841 .. $21,611]
+  [15/15] lambda=1.80  m=0.5 ... C:\users\aunanue\internship\testing\SPC_FINAL\SPC_GRID\inspeccion\sensibilidad_mu.py:143: UserWarning: g*_mean cae en frontera del grid (lambda=0.30, m=0.01). Considera extender LAMBDA_GRID/M_GRID en config.py.
+  res = compute_regret_and_select(V_df)
+z=2.7366  V=[$3,948 .. $17,064]
+    g*_mean=(0.30, 0.01)  V_mean_dl=$11,000  backtest=-41.55%
+
+==============================================================================
+RESULTADOS
+==============================================================================
+
+Tabla de sensibilidad:
+ gap_pct  mu_hat_bull_SPX  mu_hat_bear_SPX  mu_hat_bull_CMC  mu_hat_bear_CMC  g_mean_lambda  g_mean_m  V_mean_dl  backtest_cap  backtest_ret
+  0.0000           0.0019           0.0019           0.0042           0.0042         0.3000    0.2000 10738.5684     9100.1427       -0.0900
+  0.0050           0.0044          -0.0006           0.0067           0.0017         0.3000    0.0100 10809.9365     7833.4070       -0.2167
+  0.0100           0.0069          -0.0031           0.0092          -0.0008         0.3000    0.0100 10953.4424     6339.9982       -0.3660
+  0.0200           0.0119          -0.0081           0.0142          -0.0058         0.3000    0.0100 11000.6064     5845.3471       -0.4155
+  0.0400           0.0219          -0.0181           0.0242          -0.0158         0.3000    0.0100 11000.3213     5845.1731       -0.4155
+  0.0800           0.0419          -0.0381           0.0442          -0.0358         0.3000    0.0100 11000.2627     5845.1414       -0.4155
+  0.1200           0.0619          -0.0581           0.0642          -0.0558         0.3000    0.0100 11000.3125     5845.1390       -0.4155
+  0.1600           0.0819          -0.0781           0.0842          -0.0758         0.3000    0.0100 11000.2754     5845.1757       -0.4155
+
+Benchmarks (constantes):
+  Naive 50/50 rebal       : +20.92%
+  Naive 50/50 buy & hold  : +22.58%
+  OPT base (sin DL)       : +45.22%
+
+------------------------------------------------------------------------------
+GAP CRITICO (donde RG iguala/supera al naive 50/50 rebal):
+------------------------------------------------------------------------------
+  El RG NO supera al naive (+20.92%) en ningun gap probado.
+  Maximo backtest del RG: -9.00% con gap=+0.00%
+
+Outputs: C:\Users\aunanue\Internship\Testing\SPC_Final\SPC_Grid\inspeccion\sensibilidad_mu_out

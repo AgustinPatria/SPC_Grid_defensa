@@ -1,0 +1,106 @@
+======================================================================
+L5 — Inspeccion regret grid + seleccion g*
+======================================================================
+  Cargando 15 NNs cacheadas ...
+  [ 1/15] cell lambda=0.30 m=0.01 seed=5137475
+    cache hit -> decile_predictor_l0.30_m0.01.pt
+  [ 2/15] cell lambda=0.30 m=0.20 seed=365123474
+    cache hit -> decile_predictor_l0.30_m0.20.pt
+  [ 3/15] cell lambda=0.30 m=0.50 seed=1876655831
+    cache hit -> decile_predictor_l0.30_m0.50.pt
+  [ 4/15] cell lambda=0.70 m=0.01 seed=1153377893
+    cache hit -> decile_predictor_l0.70_m0.01.pt
+  [ 5/15] cell lambda=0.70 m=0.20 seed=956435689
+    cache hit -> decile_predictor_l0.70_m0.20.pt
+  [ 6/15] cell lambda=0.70 m=0.50 seed=830161467
+    cache hit -> decile_predictor_l0.70_m0.50.pt
+  [ 7/15] cell lambda=1.10 m=0.01 seed=56414385
+    cache hit -> decile_predictor_l1.10_m0.01.pt
+  [ 8/15] cell lambda=1.10 m=0.20 seed=13789192
+    cache hit -> decile_predictor_l1.10_m0.20.pt
+  [ 9/15] cell lambda=1.10 m=0.50 seed=1764711671
+    cache hit -> decile_predictor_l1.10_m0.50.pt
+  [10/15] cell lambda=1.50 m=0.01 seed=1981259275
+    cache hit -> decile_predictor_l1.50_m0.01.pt
+  [11/15] cell lambda=1.50 m=0.20 seed=1369181433
+    cache hit -> decile_predictor_l1.50_m0.20.pt
+  [12/15] cell lambda=1.50 m=0.50 seed=1402755660
+    cache hit -> decile_predictor_l1.50_m0.50.pt
+  [13/15] cell lambda=1.80 m=0.01 seed=400561167
+    cache hit -> decile_predictor_l1.80_m0.01.pt
+  [14/15] cell lambda=1.80 m=0.20 seed=681718436
+    cache hit -> decile_predictor_l1.80_m0.20.pt
+  [15/15] cell lambda=1.80 m=0.50 seed=1691472790
+    cache hit -> decile_predictor_l1.80_m0.50.pt
+
+--- IS ---
+  [cache] cargando grid_is.pkl ...
+  g*_mean  = (np.float64(0.3), np.float64(0.5))   mean_regret = $1,053.19
+  g*_worst = (np.float64(0.3), np.float64(0.01))  worst_regret= $1,932.82
+  -> inspeccion_v2\L5_regret_out\01_V_table_IS.png
+  -> inspeccion_v2\L5_regret_out\02_R_table_IS.png
+  -> inspeccion_v2\L5_regret_out\03_mean_plane_IS.png
+  -> inspeccion_v2\L5_regret_out\04_worst_plane_IS.png
+  -> inspeccion_v2\L5_regret_out\05_curves_IS.png
+  -> inspeccion_v2\L5_regret_out\06_worst_scenario_IS.png
+  -> inspeccion_v2\L5_regret_out\01_V_table_IS.csv
+  -> inspeccion_v2\L5_regret_out\02_R_table_IS.csv
+  -> inspeccion_v2\L5_regret_out\05_regret_summary_IS.csv
+
+  mean_regret pivot IS (filas=lambda, cols=m):
+m        0.01   0.20   0.50
+lambda                     
+0.3    $1,053 $1,053 $1,053
+0.7    $1,453 $1,326 $1,243
+1.1    $1,453 $1,287 $1,359
+1.5    $1,631 $1,379 $1,455
+1.8    $1,433 $1,440 $1,450
+
+  worst_regret pivot IS (filas=lambda, cols=m):
+m        0.01   0.20   0.50
+lambda                     
+0.3    $1,933 $1,933 $1,933
+0.7    $3,465 $3,903 $3,998
+1.1    $5,027 $5,046 $5,537
+1.5    $6,713 $5,931 $6,778
+1.8    $6,376 $6,720 $6,797
+
+--- OOS ---
+  [cache] cargando grid_oos.pkl ...
+  g*_mean  = (np.float64(0.7), np.float64(0.01))   mean_regret = $266.69
+  g*_worst = (np.float64(0.7), np.float64(0.5))  worst_regret= $542.39
+  -> inspeccion_v2\L5_regret_out\01_V_table_OOS.png
+  -> inspeccion_v2\L5_regret_out\02_R_table_OOS.png
+  -> inspeccion_v2\L5_regret_out\03_mean_plane_OOS.png
+  -> inspeccion_v2\L5_regret_out\04_worst_plane_OOS.png
+  -> inspeccion_v2\L5_regret_out\05_curves_OOS.png
+  -> inspeccion_v2\L5_regret_out\06_worst_scenario_OOS.png
+  -> inspeccion_v2\L5_regret_out\01_V_table_OOS.csv
+  -> inspeccion_v2\L5_regret_out\02_R_table_OOS.csv
+  -> inspeccion_v2\L5_regret_out\05_regret_summary_OOS.csv
+
+  mean_regret pivot OOS (filas=lambda, cols=m):
+m       0.01  0.20  0.50
+lambda                  
+0.3     $634  $588  $553
+0.7     $267  $427  $308
+1.1     $348  $301  $310
+1.5     $322  $304  $272
+1.8     $288  $270  $273
+
+  worst_regret pivot OOS (filas=lambda, cols=m):
+m        0.01   0.20   0.50
+lambda                     
+0.3    $1,223 $1,226 $1,156
+0.7      $628   $613   $542
+1.1      $559   $653   $642
+1.5      $744   $590   $662
+1.8      $567   $693   $638
+  -> inspeccion_v2\L5_regret_out\00_selection_summary.csv
+
+  Resumen de selecciones:
+label      g_mean     g_worst
+   IS  (0.3, 0.5) (0.3, 0.01)
+  OOS (0.7, 0.01)  (0.7, 0.5)
+
+  L5 listo.

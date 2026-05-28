@@ -394,6 +394,120 @@ En `dl/prediccion_deciles.py`:
 
 ---
 
+## 9-ter. Paradigma per-cell NN + ranking por portafolio (NUEVO — 2026-05-27)
+
+### Origen y motivacion
+
+Sugerido por el profesor guia: cada celda `(λ, m)` de la grilla debe tener
+**su propia corrida de la red neuronal**, y los 5 escenarios deben rankearse
+por **retorno de portafolio** (no por SPX como hasta ahora).
+
+Interpretacion del PDF que adoptamos para implementar esto sin romper la
+formula de regret (ec. 22, que requiere escenarios compartidos):
+
+1. **Cada celda entrena su propia LSTM** con seed deterministica
+   `cell_seed(λ, m) = SHA256("lam=...m=...") mod 2^31`. Sin seed averaging
+   interno (el proposito es heterogeneidad entre celdas).
+2. **Cada celda construye su mu_mix/sigma_mix** con su NN propia
+   (`walking + p_hist`, lectura PDF literal sec 1.3).
+3. **Escenarios compartidos** generados desde un *ensemble* (promedio de
+   logits de las 15 NNs), reducidos a 5 por **retorno de portafolio bajo
+   `w_ref = w0 = 50/50`** (interpretacion del "resumen economico" del PDF
+   sec 2.5 como el outcome del agente, no de un activo unico).
+4. Regret y seleccion: igual que el PDF (ec. 21-24) con esos escenarios
+   compartidos.
+
+### Implementacion
+
+| Archivo | Funcion nueva |
+|---|---|
+| `dl/prediccion_deciles.py` | `train_deciles(..., seed=int)` override |
+| `dl/generador_escenarios.py` | `reduce_by_portfolio_return(candidates, w_ref, ...)` |
+| `Regret_Grid.py` | `cell_seed`, `train_per_cell_nns`, `build_ensemble_model`, `build_per_cell_context`, `build_shared_scenarios`, `run_per_cell_regret_grid`, `pdl_dispersion_diagnostic` |
+| `main.py` | Reescrito con flujo fase1..fase5 |
+| `models/per_cell/` | Cache de 15 checkpoints (`decile_predictor_l{λ}_m{m}.pt`) |
+
+### Resultados
+
+```
+Pinball test loss (15 NNs):  0.0103 - 0.0135  (cellularmente similar)
+p_bull mean (15 cells):      0.42 - 0.56  (heterogeneidad real)
+p_bull std promedio (sobre t entre celdas):
+  SPX     std=0.108   max=0.171   max(max-min)=0.600
+  CMC200  std=0.095   max=0.182   max(max-min)=0.600
+
+5 escenarios compartidos (ret port w_ref=50/50):
+  s0: -52.74%   s1: -19.76%   s2: +13.69%   s3: +56.37%   s4: +158.21%
+
+V[g, s] heterogeneo en toda la grilla:
+  $3,011 (lam=0.3, m=0.5, s=0) hasta $24,057 (lam=0.9, m=0.5, s=4)
+
+g*_mean = (lambda=1.80, m=0.5)   mean_regret = $77.34
+   V: mean=$14,059  worst=$6,227   best=$23,671  (+40.59% prom escenarios)
+g*_worst = (lambda=1.80, m=1.0)  worst_regret = $355.54
+
+Backtest historico (politica aplicada a r_hist):
+  OPT (lambda=1.00, m=1.0)        $14,522.32   +45.22%
+  RG g*_mean (lam=1.80, m=0.5)    $13,105.06   +31.05%  <-- NUEVO
+  Naive 50/50 rebal               $12,091.59   +20.92%
+  Naive 50/50 buy & hold          $12,258.46   +22.58%
+```
+
+### Comparacion con paradigmas anteriores
+
+| Setup | Backtest historico | Comentario |
+|---|---|---|
+| **9-ter. Per-cell + ranking portafolio (NUEVO)** | **+31.05%** | **Le gana a naive por ~10pp; queda por debajo del OPT base** |
+| 9-bis A. PDF literal `p_hist` (1 NN, ranking SPX) | −20.62% | Pasivo pero pierde |
+| 9-bis B. Propuesta `p_sign` (1 NN, ranking SPX) | −32.27% | Activo + ruido = peor |
+| 9-bis C. Legacy `p_dl` (1 NN, ranking SPX) | −13.20% | Intermedio |
+| OPT base (sin LSTM) | +45.22% | Referencia |
+| Naive 50/50 rebal | +20.92% | Baseline |
+
+**El nuevo paradigma es el primero que le gana al naive en el backtest historico
+con data REAL**. La mejora es atribuible a dos cambios simultaneos:
+
+1. **Ranking por portafolio** (no por SPX): los 5 escenarios elegidos reflejan
+   el outcome del agente, no del activo dominante. La FO optimiza contra
+   escenarios mas representativos del riesgo real del portafolio.
+2. **NN por celda + ensemble compartido**: cada celda tiene su propia vista
+   ex-ante (mu_mix) mientras los escenarios ex-post son consensuales. Esto
+   aumenta la diversidad de politicas evaluadas sin romper la comparabilidad.
+
+### Observacion: g* en frontera del grid
+
+`g*_mean` y `g*_worst` ambos caen en λ=1.80 (frontera superior de
+LAMBDA_GRID). El optimo verdadero podria estar mas arriba. Para una
+proxima corrida convendria extender LAMBDA_GRID hacia (2.0, 2.5, 3.0).
+
+### Decisiones que vale la pena revisar con el profesor
+
+- **w_ref = 50/50** es la "vista neutra del agente en su anchor inicial".
+  Alternativas: OPT base (mas alineado a la FO pero requiere solve extra),
+  esquema iterativo (w_ref ← w_{g*}).
+- **Re-entrenar las 15 NNs sin warmstart**: maxima heterogeneidad,
+  ~5 min en CPU. Si se quisiera ahorrar costo, warmstart compartido es
+  trivial (no implementado por ahora).
+- **mu_hat_source = 'p_hist'**: lectura PDF literal sec 1.3. Volver a
+  `p_sign` reactivaria la inconsistencia documentada en sec 3 pero
+  cambiaria mu_mix temporal (gap real entre regimes). El profesor pidio
+  PDF literal explicitamente.
+
+### Reproducir
+
+```bash
+python main.py                      # full pipeline (~5 min sin cache)
+# Re-corridas son <30s gracias al cache de checkpoints en models/per_cell/
+```
+
+Para forzar re-entrenamiento:
+```python
+from Regret_Grid import train_per_cell_nns
+train_per_cell_nns(..., force_retrain=True)
+```
+
+---
+
 ## 9-bis. Reporte comparativo: PDF literal vs propuesta propia
 
 El PDF tiene una ambiguedad sobre cómo computar `mu_hat` cuando se introduce

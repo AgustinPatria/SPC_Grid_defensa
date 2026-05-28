@@ -2,14 +2,26 @@
 Regret-grid: seleccion de parametros (lambda, m) del portafolio usando
 escenarios generados por el pipeline DL (PDF seccion 3).
 
-Pipeline:
-  1. Construye contexto DL: mu_hat/sigma_hat historicos + p(t) DL + 5 escenarios.
-  2. Para cada g = (lambda, m) en la grilla: resuelve solve_portfolio una vez -> w^g.
-  3. Para cada escenario s: simula capital -> V[g, s] (ec. 19).
-  4. Calcula regret R[g, s] = V_best_s - V[g, s] (ec. 22).
-  5. Selecciona g* por regret promedio (ec. 23) y peor caso (ec. 24).
+Pipeline NUEVO (per-cell NN):
+  1. Entrena UNA NN por celda g = (lambda, m) con seed deterministica
+     (train_per_cell_nns).
+  2. Para cada celda: construye su propio mu_mix/sigma_mix usando su NN +
+     walking + p_hist (build_per_cell_context).
+  3. ESCENARIOS COMPARTIDOS: ensemble de las 15 NNs (build_ensemble_model)
+     genera N candidatos; se reducen a 5 representativos rankeando por
+     retorno de portafolio bajo w_ref = w0 (build_shared_scenarios).
+  4. Para cada g: resuelve solve_portfolio con su contexto -> w_g.
+  5. Para cada (g, s): simula capital -> V[g, s] sobre los escenarios
+     COMPARTIDOS (ec. 19). Asi V_best_s esta bien definido.
+  6. Regret R[g, s] = V_best_s - V[g, s] (ec. 22), seleccion g*_mean,
+     g*_worst (ec. 23-24).
+
+Pipeline LEGACY (1 NN compartida): build_dl_context + run_regret_grid
+sigue disponible para los scripts de inspeccion.
 """
+import hashlib
 from pathlib import Path
+from typing import Dict, Sequence, Tuple
 
 import gamspy as gp
 import matplotlib.pyplot as plt
@@ -23,9 +35,11 @@ from config import (
     C_BASE,
     CHECKPOINT_PATH,
     DATA_DIR,
+    DLConfig,
     LAMBDA_GRID,
     LAMBDA_RIESGO_DEFAULT,
     M_GRID,
+    MODELS_DIR,
     N_CANDIDATES,
     N_SCENARIOS,
     PROB_CSV,
@@ -35,6 +49,7 @@ from config import (
     RETURN_CSV,
     SCENARIO_SEED,
     SOLVER,
+    SPLIT,
     SUMMARY_ASSET,
     T_HORIZON,
     V_MAX_BUFFER,
@@ -44,9 +59,16 @@ from config import (
 from dl.generador_escenarios import (
     generate_candidate_scenarios,
     generate_representative_scenarios,
+    reduce_by_fo_outcome,
+    reduce_by_portfolio_return,
     reduce_to_representatives,
 )
-from dl.prediccion_deciles import load_checkpoint
+from dl.prediccion_deciles import (
+    LoadedModel,
+    load_checkpoint,
+    save_checkpoint,
+    train_deciles,
+)
 from dl.regimen_predicted import regimen_from_deciles
 
 
@@ -82,8 +104,10 @@ def load_market_data(base_dir_str: str | Path | None = None,
         df_r = pd.read_csv(BASE_DIR / RETURN_CSV[a], sep=",")
         df_p.columns = [c.strip() for c in df_p.columns]
         df_r.columns = [c.strip() for c in df_r.columns]
-        df_p["t"] = df_p["t"].astype(int)
-        df_r["t"] = df_r["t"].astype(int)
+        # Acepta ambos formatos del CSV: "t1, t2, ..." (string con prefijo)
+        # o "1, 2, ..." (entero literal). Strip del prefijo "t" si existe.
+        df_p["t"] = df_p["t"].astype(str).str.replace(r"^t", "", regex=True).astype(int)
+        df_r["t"] = df_r["t"].astype(str).str.replace(r"^t", "", regex=True).astype(int)
         prob[a] = df_p
         ret[a]  = df_r
 
@@ -144,7 +168,8 @@ def load_market_data(base_dir_str: str | Path | None = None,
     # (el "estable") escalada por V_MAX_BUFFER. Entra en la FO como penalizacion
     # lambda*(Riesgo - V_max). Es una constante => no altera el optimo w*, solo
     # desplaza el valor de z. (ddof=1, sample variance, igual que pandas default).
-    V_max = float(r[V_MAX_REF_ASSET].var() * V_MAX_BUFFER)
+    # Respeta moments_window para no filtrar varianza del test set en OOS.
+    V_max = float(_slice_mom(r[V_MAX_REF_ASSET]).var() * V_MAX_BUFFER)
 
     return {
         "mu_mix":          mu_mix,
@@ -285,9 +310,10 @@ def solve_portfolio(context: dict,
 
     anclaje = gp.Equation(m, "anclaje_inicial", domain=[i_set],
                           description="anclaje al portafolio inicial")
+    t_anchor = T_labels[0]  # primer periodo del horizonte; "t1" en el caso base.
     anclaje[i_set] = (
-        w_var[i_set, "t1"] - w0_p[i_set]
-        == u_var[i_set, "t1"] - v_var[i_set, "t1"]
+        w_var[i_set, t_anchor] - w0_p[i_set]
+        == u_var[i_set, t_anchor] - v_var[i_set, t_anchor]
     )
 
     portfolio = gp.Model(
@@ -798,7 +824,7 @@ def run_regret_grid(context, lambda_grid, m_grid):
     for lam in lambda_grid:
         for cm in m_grid:
             run += 1
-            print(f"  [{run:>2}/{total}] lambda={lam:.2f}  m={cm:.1f} ...",
+            print(f"  [{run:>2}/{total}] lambda={lam:.2f}  m={cm:.2f} ...",
                   end=" ", flush=True)
             z, w_sol, u_sol, v_sol, _ = solve_portfolio(
                 context, lambda_riesgo=lam, costo_mult=cm,
@@ -973,7 +999,7 @@ def plot_capital_evolution_historical(cap_opt, cap_rb, cap_bh, cap_regret,
     ax.plot(x, y_rb,     label="NAIVE 50/50 (rebal)",       color="#8B3A1F", linewidth=1.2)
     ax.plot(x, y_bh,     label="NAIVE 50/50 (buy&hold)",    color="#E63946", linewidth=1.2)
     ax.plot(x, y_regret,
-            label=f"Regret-Grid g*_mean (lambda={lam_star:.2f}, m={m_star:.1f})",
+            label=f"Regret-Grid g*_mean (lambda={lam_star:.2f}, m={m_star:.2f})",
             color="#1f77b4", linewidth=1.8)
 
     ax.set_title("Evolucion de capital")
@@ -1057,7 +1083,7 @@ def run_historical_backtest(w_star, u_star, v_star, lam_m, m_m,
     fmt = "  {:<42}  ${:>11,.2f}  {:>+8.2%}  ${:>+11,.2f}"
     print(fmt.format("OPT (lambda=1.00, m=1.0)",
                      cf_opt, cf_opt/C0 - 1, cf_opt - C0))
-    print(fmt.format(f"Regret-Grid g*_mean (lambda={lam_m:.2f}, m={m_m:.1f})",
+    print(fmt.format(f"Regret-Grid g*_mean (lambda={lam_m:.2f}, m={m_m:.2f})",
                      cf_rg,  cf_rg /C0 - 1, cf_rg  - C0))
     print(fmt.format("Naive 50/50 rebalanceo",
                      cf_rb,  cf_rb /C0 - 1, cf_rb  - C0))
@@ -1082,7 +1108,510 @@ def run_historical_backtest(w_star, u_star, v_star, lam_m, m_m,
 
 
 # ================================================================
-# 7) Bloque principal
+# 6.b) Helpers para evaluacion out-of-sample (test segment del split DL)
+# ================================================================
+
+def compute_test_start_t(
+    T: int = T_HORIZON,
+    H: int = None,
+    split: Tuple[float, float, float] = SPLIT,
+) -> int:
+    """Primer t (1-indexed sobre el indice del CSV) cuyo target NO se uso
+    durante el entrenamiento del LSTM.
+
+    El split del LSTM se aplica sobre las VENTANAS (no sobre los retornos):
+    para H ventanas-de-largo-H sobre T retornos, hay N = T - H ventanas;
+    la ventana en posicion n tiene target en t_vals[n + H]. Por lo tanto el
+    primer target del test set esta en t = H + n_train + n_valid + 1
+    (en 1-indexed). Con T=163, H=60, split=(0.70,0.15,0.15) => t_test_start=148.
+    """
+    if H is None:
+        from config import H_WINDOW
+        H = H_WINDOW
+    N_windows = T - H
+    if N_windows <= 0:
+        raise ValueError(f"T={T} debe ser > H={H}")
+    n_train = int(N_windows * split[0])
+    n_valid = int(N_windows * split[1])
+    return H + n_train + n_valid + 1
+
+
+def build_hist_ctx_oos(
+    data_dir: Path,
+    t_test_start: int,
+    T: int = T_HORIZON,
+) -> dict:
+    """Contexto historico restringido a [t_test_start..T] para el backtest OOS.
+
+    - mu_hat / sigma_hat / V_max se estiman SOLO sobre [1..t_test_start-1]
+      (train+valid del split) para no filtrar info del test set.
+    - p_hist(t) en [t_test_start..T] se usa para el mix mu_mix/sigma_mix.
+    - r_hist(t) en [t_test_start..T] se usa para simular las curvas de capital.
+    """
+    ctx_full = load_market_data(
+        str(data_dir),
+        moments_window=(1, t_test_start - 1),
+    )
+    assets = list(ctx_full["assets"])
+    out = dict(ctx_full)
+    T_vals_new = [t for t in ctx_full["T_vals"] if t_test_start <= t <= T]
+    out["T_vals"]    = T_vals_new
+    out["nT"]        = len(T_vals_new)
+    out["mu_mix"]    = {
+        i: ctx_full["mu_mix"][i].loc[t_test_start:T] for i in assets
+    }
+    out["sigma_mix"] = {
+        i: {j: ctx_full["sigma_mix"][i][j].loc[t_test_start:T] for j in assets}
+        for i in assets
+    }
+    out["r"]         = {
+        i: ctx_full["r"][i].loc[t_test_start:T] for i in assets
+    }
+    out["p_hist"]    = {
+        i: ctx_full["p_hist"][i].loc[t_test_start:T] for i in assets
+    }
+    out["t_start"]   = t_test_start
+    out["moments_window"] = (1, t_test_start - 1)
+    return out
+
+
+def run_historical_backtest_oos(
+    w_star, u_star, v_star, lam_m, m_m,
+    V_mean_row, n_scenarios,
+    data_dir, t_test_start, T, out_path,
+):
+    """Backtest OOS: compara OPT_oos / Naive RB / Naive BH / Regret-Grid g*_mean
+    sobre r_hist[t_test_start..T] (segmento test del split del LSTM).
+
+    OPT_oos se re-resuelve con lambda=1.0 sobre un contexto donde mu_hat/sigma_hat
+    se estimaron solo en train+valid. Esto evita leakage de la varianza del test
+    en el estimador.
+
+    Las políticas RG vienen del regret-grid OOS (ya resuelto con horizonte=16
+    semanas y anchor w0=50/50 en t=t_test_start).
+    """
+    hist_ctx_oos = build_hist_ctx_oos(data_dir, t_test_start, T)
+    C0 = hist_ctx_oos["Capital_inicial"]
+
+    _, w_opt, u_opt, v_opt, _ = solve_portfolio(
+        hist_ctx_oos, lambda_riesgo=1.00, costo_mult=1.0,
+    )
+    cap_opt = simulate_capital_opt(w_opt, u_opt, v_opt, hist_ctx_oos)
+    cap_rg  = simulate_capital_opt(w_star, u_star, v_star, hist_ctx_oos)
+    cap_rb  = simulate_naive_rb(hist_ctx_oos)
+    cap_bh  = simulate_naive_bh(hist_ctx_oos)
+
+    T_h     = hist_ctx_oos["T_vals"]
+    t_final = T_h[-1]
+    cf_opt  = cap_opt[t_final]
+    cf_rg   = cap_rg [t_final]
+    cf_rb   = cap_rb [t_final]
+    cf_bh   = cap_bh [t_final]
+
+    print("\n--- Backtest OUT-OF-SAMPLE (politica aplicada a r_hist[test]) ---")
+    print(f"  Segmento test del split LSTM: t={t_test_start}..t{T} "
+          f"({len(T_h)} periodos)")
+    print(f"  Capital inicial = ${C0:,.2f}   anchor w0 = 50/50 en t={t_test_start}")
+    print(f"  mu_hat/sigma_hat estimados solo sobre t=1..{t_test_start-1} (train+valid)")
+    print(f"  {'politica':<42}  {'cap_final':>12}  {'ret_acum':>9}  {'inc_cap':>12}")
+    print(f"  {'-' * 80}")
+    fmt = "  {:<42}  ${:>11,.2f}  {:>+8.2%}  ${:>+11,.2f}"
+    print(fmt.format("OPT_oos (lambda=1.00, m=1.0)",
+                     cf_opt, cf_opt/C0 - 1, cf_opt - C0))
+    print(fmt.format(f"Regret-Grid_oos g*_mean (lambda={lam_m:.2f}, m={m_m:.2f})",
+                     cf_rg,  cf_rg /C0 - 1, cf_rg  - C0))
+    print(fmt.format("Naive 50/50 rebalanceo",
+                     cf_rb,  cf_rb /C0 - 1, cf_rb  - C0))
+    print(fmt.format("Naive 50/50 buy & hold",
+                     cf_bh,  cf_bh /C0 - 1, cf_bh  - C0))
+    print(f"\n  Nota: V_mean (DL forecast) para g*_mean OOS = "
+          f"{V_mean_row.mean()/C0 - 1:+.2%} (promedio sobre {n_scenarios} escenarios DL OOS).")
+
+    plot_capital_evolution_historical(
+        cap_opt, cap_rb, cap_bh, cap_rg,
+        T_h, lam_m, m_m, out_path=out_path,
+    )
+
+    return {
+        "cap_opt": cap_opt, "cap_rg": cap_rg,
+        "cap_rb":  cap_rb,  "cap_bh": cap_bh,
+        "hist_ctx_oos": hist_ctx_oos,
+    }
+
+
+# ================================================================
+# 7) Pipeline PER-CELL: una NN por celda + escenarios compartidos
+# ================================================================
+
+def cell_seed(lam: float, m: float) -> int:
+    """Seed deterministica para entrenar la NN de la celda (lam, m).
+
+    Hash SHA256 sobre la representacion textual con 6 decimales -> int. Misma
+    (lam, m) => misma seed entre corridas (reproducibilidad).
+    """
+    s = f"lam={lam:.6f}_m={m:.6f}".encode()
+    return int(hashlib.sha256(s).hexdigest()[:8], 16) % (2**31)
+
+
+def _per_cell_ckpt_path(lam: float, m: float, base_dir: Path) -> Path:
+    return Path(base_dir) / f"decile_predictor_l{lam:.2f}_m{m:.2f}.pt"
+
+
+def train_per_cell_nns(
+    lambda_grid: Sequence[float],
+    m_grid: Sequence[float],
+    dl_config: DLConfig | None = None,
+    models_dir: Path | None = None,
+    force_retrain: bool = False,
+) -> Dict[Tuple[float, float], LoadedModel]:
+    """Entrena una NN por celda (lam, m) con seed deterministica = cell_seed(lam, m).
+
+    Cachea checkpoints en {models_dir}/per_cell/decile_predictor_l{lam}_m{m}.pt.
+    Si force_retrain=False y el checkpoint existe, lo reusa (no re-entrena).
+
+    Returns: dict {(lam, m): LoadedModel}. Cada LoadedModel tiene UNA red
+    (no se aplica seed averaging interno: el proposito del per-cell es
+    introducir heterogeneidad entre celdas).
+    """
+    if dl_config is None:
+        dl_config = DLConfig()
+    if models_dir is None:
+        models_dir = MODELS_DIR
+    per_cell_dir = Path(models_dir) / "per_cell"
+    per_cell_dir.mkdir(parents=True, exist_ok=True)
+
+    nns: Dict[Tuple[float, float], LoadedModel] = {}
+    total = len(lambda_grid) * len(m_grid)
+    run = 0
+
+    for lam in lambda_grid:
+        for m in m_grid:
+            run += 1
+            ckpt_path = _per_cell_ckpt_path(lam, m, per_cell_dir)
+            seed = cell_seed(lam, m)
+            print(f"  [{run:>2}/{total}] cell lambda={lam:.2f} m={m:.2f} "
+                  f"seed={seed}", flush=True)
+
+            if ckpt_path.exists() and not force_retrain:
+                print(f"    cache hit -> {ckpt_path.name}")
+            else:
+                result = train_deciles(dl_config, seed=seed)
+                save_checkpoint(result, ckpt_path)
+                print(f"    trained best_valid={result.best_valid:.6f}  "
+                      f"-> {ckpt_path.name}")
+
+            nns[(lam, m)] = load_checkpoint(ckpt_path)
+
+    return nns
+
+
+def build_ensemble_model(
+    nns: Dict[Tuple[float, float], LoadedModel],
+) -> LoadedModel:
+    """Combina las NNs por celda en un LoadedModel ensemble (promedio de logits).
+
+    predict_deciles_batch y predict_pbull_walking ya promedian sobre
+    model.nets, asi que un LoadedModel con la concatenacion de todos los
+    nets da exactamente "promedio de logits sobre las 15 redes".
+
+    Pre-requisitos: todas las NNs deben compartir DLConfig, mean y std (cierto
+    cuando todas se entrenan con el mismo dl_config sobre el mismo dataset).
+    """
+    items = list(nns.values())
+    if not items:
+        raise ValueError("nns vacio: no hay redes para combinar")
+    ref = items[0]
+    all_nets = []
+    for lm in items:
+        all_nets.extend(lm.nets)
+    return LoadedModel(
+        nets=all_nets,
+        config=ref.config,
+        mean=ref.mean,
+        std=ref.std,
+    )
+
+
+def build_per_cell_context(
+    nn: LoadedModel,
+    data_dir: Path = DATA_DIR,
+    T: int = T_HORIZON,
+    mu_hat_source: str = "p_hist",
+    t_start: int = 1,
+    moments_window: Tuple[int, int] | None = None,
+) -> dict:
+    """Construye un contexto para solve_portfolio usando UNA NN especifica.
+
+    Variante de build_dl_context pensada para el pipeline per-cell:
+    - p_method = 'walking' (default validado en HALLAZGOS sec 4).
+    - mu_hat_source = 'p_hist' (lectura PDF literal sec 1.3: p del CSV).
+    - NO genera escenarios (esos vienen del paso compartido en
+      build_shared_scenarios).
+
+    t_start: primer t (1-indexed sobre el indice del CSV) en T_vals del output.
+        Default 1 (in-sample completo). Para evaluacion OOS pasar
+        compute_test_start_t(T, H, SPLIT) (p.ej. 148 con SPLIT=(0.70,0.15,0.15)
+        y T=163, H=60).
+    moments_window: tupla (a, b) inclusive sobre el indice de r_hist para
+        estimar mu_hat/sigma_hat. None (default) = toda la serie. Para
+        evaluacion OOS limpia pasar (1, t_start-1) para que el estimador
+        no vea el segmento de test.
+
+    Devuelve un dict compatible con solve_portfolio (mu_mix, sigma_mix, etc.).
+    Los campos 'scenarios' y similares se rellenan despues por el orquestador.
+    """
+    if mu_hat_source not in {"p_hist", "p_dl", "p_sign"}:
+        raise ValueError(f"mu_hat_source invalido: {mu_hat_source!r}")
+    if not (1 <= t_start <= T):
+        raise ValueError(f"t_start={t_start} fuera de [1, T={T}]")
+    data_dir = Path(data_dir)
+    base_ctx = load_market_data(str(data_dir))
+    assets   = list(base_ctx["assets"])
+    regimes  = list(REGIMES)
+    r_hist   = base_ctx["r"]
+
+    H = nn.config.H
+    returns_history = np.stack(
+        [r_hist[i].sort_index().values[:T] for i in assets], axis=1,
+    ).astype(np.float32)                                       # (T, A)
+
+    # p_dl(t) por walking sobre la ventana real previa (PDF-aligned, validado).
+    # Computamos para todo t=1..T y luego cortamos: walking necesita la ventana
+    # real previa de tamano H, independientemente de t_start.
+    p_bull_arr = predict_pbull_walking(nn, returns_history, T)  # (T, A)
+    p_bear_arr = 1.0 - p_bull_arr
+    T_full = list(range(1, T + 1))
+    p_dl_full = {
+        asset: pd.DataFrame(
+            {"bear": p_bear_arr[:, ai], "bull": p_bull_arr[:, ai]},
+            index=T_full,
+        )
+        for ai, asset in enumerate(assets)
+    }
+
+    r_hist_T = {
+        i: pd.Series(r_hist[i].sort_index().values[:T], index=T_full)
+        for i in assets
+    }
+
+    # mu_hat con p_hist (PDF literal sec 1.3): probabilidades del CSV.
+    if mu_hat_source == "p_hist":
+        p_for_moments = {
+            i: pd.DataFrame(
+                base_ctx["p_hist"][i].sort_index().values[:T, :],
+                index=T_full,
+                columns=list(base_ctx["p_hist"][i].columns),
+            )
+            for i in assets
+        }
+    elif mu_hat_source == "p_sign":
+        from config import BULL_THRESHOLD
+        p_for_moments = {}
+        for i in assets:
+            r_i = r_hist_T[i]
+            bull_i = (r_i >= BULL_THRESHOLD).astype(float)
+            p_for_moments[i] = pd.DataFrame(
+                {"bear": (1.0 - bull_i).values, "bull": bull_i.values},
+                index=T_full,
+            )
+    else:  # 'p_dl' (legacy, no recomendado)
+        p_for_moments = p_dl_full
+
+    mu_hat, sigma_hat = _compute_hist_moments(
+        r_hist_T, p_for_moments, assets, regimes,
+        moments_window=moments_window,
+    )
+
+    mu_mix_full = {i: pd.Series(0.0, index=T_full) for i in assets}
+    sigma_mix_full = {
+        i: {j: pd.Series(0.0, index=T_full) for j in assets} for i in assets
+    }
+    for i in assets:
+        for k in regimes:
+            mu_mix_full[i] += p_dl_full[i][k] * mu_hat[(i, k)]
+    for i in assets:
+        for j in assets:
+            for k in regimes:
+                sigma_mix_full[i][j] += p_dl_full[i][k] * p_dl_full[j][k] * sigma_hat[(i, j, k)]
+    for i in assets:
+        for j in assets:
+            sym = 0.5 * (sigma_mix_full[i][j] + sigma_mix_full[j][i])
+            sigma_mix_full[i][j] = sym
+            sigma_mix_full[j][i] = sym
+
+    # Cortar al rango [t_start..T] para output.
+    T_vals = [t for t in T_full if t >= t_start]
+    mu_mix = {i: mu_mix_full[i].loc[t_start:T] for i in assets}
+    sigma_mix = {
+        i: {j: sigma_mix_full[i][j].loc[t_start:T] for j in assets}
+        for i in assets
+    }
+    p_dl = {i: p_dl_full[i].loc[t_start:T] for i in assets}
+    r_sliced = {i: r_hist[i].loc[t_start:T] for i in assets}
+
+    # V_max consistente con moments_window (si se restringio mu_hat al train,
+    # V_max tambien debe usar solo train para no filtrar varianza futura).
+    if moments_window is None:
+        V_max = base_ctx["V_max"]
+    else:
+        a, b = moments_window
+        V_max = float(r_hist[V_MAX_REF_ASSET].loc[a:b].var() * V_MAX_BUFFER)
+
+    return {
+        "mu_mix":          mu_mix,
+        "sigma_mix":       sigma_mix,
+        "T_vals":          T_vals,
+        "nT":              len(T_vals),
+        "assets":          assets,
+        "c_base":          base_ctx["c_base"],
+        "w0":              base_ctx["w0"],
+        "Capital_inicial": base_ctx["Capital_inicial"],
+        "V_max":           V_max,
+        "r":               r_sliced,
+        "p_dl":            p_dl,
+        "mu_hat":          mu_hat,
+        "sigma_hat":       sigma_hat,
+        "t_start":         t_start,
+        "moments_window":  moments_window,
+    }
+
+
+def build_shared_scenarios(
+    ensemble_nn: LoadedModel,
+    initial_window: np.ndarray,
+    w_ref: np.ndarray,
+    c_base: np.ndarray | None = None,
+    N: int = N_CANDIDATES,
+    T: int = T_HORIZON,
+    n_scenarios: int = N_SCENARIOS,
+    seed: int = SCENARIO_SEED,
+    position: str = "median",
+) -> np.ndarray:
+    """Genera escenarios compartidos para evaluacion ex-post (FO-aligned).
+
+    1. Usa el ensemble (promedio de logits de las 15 NNs) para rolling forward
+       desde initial_window.
+    2. Reduce N candidatos a n_scenarios representativos rankeando por
+       capital terminal bajo rebalanceo a w_ref CON COSTOS DE TRANSACCION
+       (ec. 19 del PDF, FO-aligned).
+
+    Si c_base es None, se omite la penalizacion por costos y se rankea solo
+    por retorno acumulado de portafolio (comportamiento legacy).
+
+    Returns: (n_scenarios, T, A) — los mismos escenarios para TODAS las celdas,
+    necesario para que V_best_s y la formula de regret (ec. 22) esten bien
+    definidos.
+    """
+    candidates = generate_candidate_scenarios(
+        ensemble_nn, initial_window, N=N, T=T, seed=seed,
+    )                                                          # (N, T, A)
+    if c_base is None:
+        scenarios = reduce_by_portfolio_return(
+            candidates, w_ref=w_ref,
+            n_quintiles=n_scenarios, position=position,
+        )
+    else:
+        scenarios = reduce_by_fo_outcome(
+            candidates, w_ref=w_ref, c_base=c_base,
+            n_quintiles=n_scenarios, position=position,
+        )
+    return scenarios                                            # (n_S, T, A)
+
+
+def run_per_cell_regret_grid(
+    per_cell_contexts: Dict[Tuple[float, float], dict],
+    scenarios: np.ndarray,
+    lambda_grid: Sequence[float],
+    m_grid: Sequence[float],
+) -> Tuple[pd.DataFrame, dict]:
+    """Orquesta fase 4-5 del pipeline per-cell.
+
+    Para cada g = (lam, m):
+      - Resuelve solve_portfolio con per_cell_contexts[g] (su mu_mix, sigma_mix
+        propios) y los parametros (lam, m) -> w_g, u_g, v_g, z_g.
+      - Simula V[g, s] sobre los escenarios COMPARTIDOS.
+
+    Returns: (V_df long-format, policies dict).
+    """
+    n_S = scenarios.shape[0]
+    rows = []
+    policies = {}
+    total = len(lambda_grid) * len(m_grid)
+    run = 0
+
+    for lam in lambda_grid:
+        for cm in m_grid:
+            run += 1
+            ctx_g = per_cell_contexts[(lam, cm)]
+            assets = ctx_g["assets"]
+            T_vals = ctx_g["T_vals"]
+            c_base = ctx_g["c_base"]
+            C0     = ctx_g["Capital_inicial"]
+
+            print(f"  [{run:>2}/{total}] lambda={lam:.2f}  m={cm:.2f} ...",
+                  end=" ", flush=True)
+            z, w_sol, u_sol, v_sol, _ = solve_portfolio(
+                ctx_g, lambda_riesgo=lam, costo_mult=cm,
+            )
+            policies[(lam, cm)] = (w_sol, u_sol, v_sol, z)
+
+            Vs = []
+            for s in range(n_S):
+                cap = simulate_capital_on_scenario(
+                    w_sol, u_sol, v_sol, scenarios[s],
+                    assets, c_base, C0, T_vals,
+                )
+                Vs.append(cap[T_vals[-1]])
+                rows.append({"lambda": lam, "m": cm, "s": s,
+                             "V": Vs[-1], "z": z})
+            print(f"z={z:.4f}  V=[${min(Vs):,.0f} .. ${max(Vs):,.0f}]")
+
+    return pd.DataFrame(rows), policies
+
+
+def pdl_dispersion_diagnostic(
+    nns: Dict[Tuple[float, float], LoadedModel],
+    data_dir: Path = DATA_DIR,
+    T: int = T_HORIZON,
+) -> pd.DataFrame:
+    """Diagnostico: dispersion de p_dl(t) entre las 15 NNs por celda.
+
+    Si las 15 NNs convergen al mismo modelo, p_dl es identico => el paradigma
+    per-cell colapsa al equivalente legacy (1 NN). Esta funcion expone si hay
+    heterogeneidad real entre celdas.
+
+    Returns: DataFrame con columnas (asset, t, mean, std, min, max) de p_bull
+    a lo largo de las 15 celdas.
+    """
+    base_ctx = load_market_data(str(Path(data_dir)))
+    assets = list(base_ctx["assets"])
+    r_hist = base_ctx["r"]
+    H_any  = next(iter(nns.values())).config.H
+    returns_history = np.stack(
+        [r_hist[i].sort_index().values[:T] for i in assets], axis=1,
+    ).astype(np.float32)
+
+    # p_bull(t, asset) por NN (G celdas, T pasos, A activos)
+    p_stack = []
+    for nn in nns.values():
+        p_bull_arr = predict_pbull_walking(nn, returns_history, T)  # (T, A)
+        p_stack.append(p_bull_arr)
+    arr = np.stack(p_stack, axis=0)                                  # (G, T, A)
+
+    rows = []
+    for ai, asset in enumerate(assets):
+        for t in range(T):
+            col = arr[:, t, ai]
+            rows.append({
+                "asset": asset, "t": t + 1,
+                "mean":  float(col.mean()), "std": float(col.std()),
+                "min":   float(col.min()),  "max": float(col.max()),
+            })
+    return pd.DataFrame(rows)
+
+
+# ================================================================
+# 8) Bloque principal
 # ================================================================
 
 if __name__ == "__main__":
@@ -1140,14 +1669,14 @@ if __name__ == "__main__":
     V_mean_row  = res["V_table"].loc[(lam_m, m_m)]
     V_worst_row = res["V_table"].loc[(lam_w, m_w)]
     print("\n--- Seleccion de g* ---")
-    print(f"  g*_mean  (ec. 23): lambda={lam_m:.2f}  m={m_m:.1f}  "
+    print(f"  g*_mean  (ec. 23): lambda={lam_m:.2f}  m={m_m:.2f}  "
           f"mean_regret=${res['g_mean_metric']:,.2f}")
     print(f"      V: mean=${V_mean_row.mean():>12,.2f}  "
           f"worst=${V_mean_row.min():>12,.2f}  "
           f"best=${V_mean_row.max():>12,.2f}  "
           f"(capital inicial=${C0:,.2f})")
     print(f"      retorno promedio sobre escenarios = {V_mean_row.mean()/C0 - 1:+.2%}")
-    print(f"  g*_worst (ec. 24): lambda={lam_w:.2f}  m={m_w:.1f}  "
+    print(f"  g*_worst (ec. 24): lambda={lam_w:.2f}  m={m_w:.2f}  "
           f"worst_regret=${res['g_worst_metric']:,.2f}")
     print(f"      V: mean=${V_worst_row.mean():>12,.2f}  "
           f"worst=${V_worst_row.min():>12,.2f}  "
@@ -1172,7 +1701,7 @@ if __name__ == "__main__":
     w_star, u_star, v_star, _z = policies[(lam_m, m_m)]
     plot_capital_curves(
         w_star, u_star, v_star, ctx,
-        title=f"Capital por escenario con g*_mean (lambda={lam_m:.2f}, m={m_m:.1f})",
+        title=f"Capital por escenario con g*_mean (lambda={lam_m:.2f}, m={m_m:.2f})",
         out_path=RESULTS_DIR / "regret_capital_curves.png",
     )
 

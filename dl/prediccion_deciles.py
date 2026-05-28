@@ -70,7 +70,8 @@ def load_returns(data_dir: Path = DATA_DIR) -> pd.DataFrame:
     for asset in ASSETS:
         df = pd.read_csv(data_dir / RETURN_CSV[asset])
         df.columns = [c.strip() for c in df.columns]
-        df["t"] = df["t"].astype(int)
+        # Acepta "t1, t2, ..." o "1, 2, ..." en la columna t.
+        df["t"] = df["t"].astype(str).str.replace(r"^t", "", regex=True).astype(int)
         df = df.rename(columns={RETURN_COL[asset]: asset})[["t", asset]]
         merged = df if merged is None else pd.merge(merged, df, on="t")
     return merged.sort_values("t").set_index("t")[list(ASSETS)]
@@ -259,21 +260,29 @@ def _train_one(
     )
 
 
-def train_deciles(config: DLConfig, data_dir: Path | None = None) -> TrainResult:
+def train_deciles(
+    config: DLConfig,
+    data_dir: Path | None = None,
+    seed: Optional[int] = None,
+) -> TrainResult:
     """Entrena el LSTM con seed averaging; retorna el mejor modelo por pinball-valid.
 
     data_dir: si se pasa, carga los retornos desde ahi en vez del DATA_DIR
         default. Util para entrenar sobre datasets sinteticos sin tocar config.
+    seed: si se pasa, IGNORA config.seeds y entrena UNA sola vez con esa seed
+        (sin averaging). Util para el pipeline per-cell donde cada celda usa
+        una seed deterministica propia y queremos heterogeneidad entre celdas.
     """
     df_ret = load_returns(data_dir) if data_dir is not None else load_returns()
     X, Y, t_idx = build_windows(df_ret, config.H)
     split  = chrono_split(X, Y, t_idx, config.split)
     scaler = fit_standardizer(split.X_train)
 
+    seeds_to_use = (seed,) if seed is not None else config.seeds
     best: TrainResult | None = None
-    for seed in config.seeds:
-        r = _train_one(config, split, scaler, seed)
-        print(f"  seed={seed}  best_valid={r.best_valid:.6f}")
+    for s in seeds_to_use:
+        r = _train_one(config, split, scaler, s)
+        print(f"  seed={s}  best_valid={r.best_valid:.6f}")
         if best is None or r.best_valid < best.best_valid:
             best = r
     assert best is not None
